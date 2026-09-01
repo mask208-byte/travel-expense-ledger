@@ -123,6 +123,20 @@
   .summary .warn-count{font-size:.78rem; color:var(--ink-muted);}
 
   .skip-note{color:var(--ink-muted); font-size:.85rem; font-style:italic;}
+
+  details.card summary::-webkit-details-marker{display:none;}
+  details.card summary{list-style:none;}
+  details.card summary .section-num{margin-right:.1rem;}
+
+  .status-pill{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:.4rem; flex:none;}
+  .status-pill.law{background:var(--accent);}
+  .status-pill.org{background:var(--ok);}
+  .status-pill.undetermined{background:var(--warn);}
+  .status-cell{display:flex; align-items:center;}
+  .status-select{font-family:var(--font-body); font-size:.78rem; padding:.3rem .4rem; border:1px solid var(--line); background:var(--surface); color:var(--ink);}
+  table.ledger input[type="text"], table.ledger select{font-family:var(--font-body); font-size:.82rem; padding:.35rem .45rem; border:1px solid var(--line); background:var(--surface); color:var(--ink); width:100%; min-width:100px;}
+  .grade-cell{display:flex; flex-direction:column; gap:.15rem;}
+  .grade-cell input{width:70px !important; min-width:70px !important;}
 </style>
 
 <div class="wrap">
@@ -171,10 +185,10 @@
           <div class="radio-row">
             <label><input type="radio" name="tripType" value="local" checked> 관내출장</label>
             <label><input type="radio" name="tripType" value="distant"> 관외출장</label>
-            <label class="disabled"><input type="radio" name="tripType" value="overseas" disabled> 해외출장 (추후 지원 예정)</label>
+            <label><input type="radio" name="tripType" value="overseas"> 국외출장</label>
           </div>
         </div>
-        <p class="note">※ 계산 로직은 관내·관외·해외 3개 모듈로 분리되어 있습니다. 해외출장 세부기준은 첨부 규정에 없어 이번 프로토타입에서는 제외했으며, 별도 기준이 확정되면 해당 모듈만 추가하면 되는 구조입니다.</p>
+        <p class="note">※ 관내·관외 기준은 재단 「여비업무 처리기준」이 확정 규정입니다. 국외출장은 재단 자체 기준이 없어 「공무원 여비 규정」 별표3(항공운임)·별표4(일비·숙박비·식비)의 값을 <strong>참고용 초기값</strong>으로 불러왔으며, 재단의 확정 규정이 아닙니다 — 하단 관리자 설정에서 재단 기준으로 교체할 수 있습니다.</p>
       </section>
 
       <!-- 2. 관내출장 -->
@@ -270,10 +284,113 @@
         <p class="note">※ 첫날은 출발시각(07시 이전 출발→조식, 12시 이전 출발→중식), 마지막날은 도착시각(19시 이후 도착→석식) 기준으로 판정하고, 중간일은 3식 모두 대상입니다. 현지에서 식사를 제공받은 끼니는 체크 시 지급 대상에서 제외됩니다.</p>
       </section>
 
+      <!-- 2. 국외출장 -->
+      <section class="card" id="overseasSection" hidden>
+        <div class="section-title"><span class="section-num">2</span>국외출장 산정<span class="section-sub">「공무원 여비 규정」 참고값 + 재단 관리자 설정</span></div>
+        <p class="note">※ 아래 일비·숙박비상한·식비·항공등급은 「공무원 여비 규정」 별표3·별표4의 값을 <strong>참고용 초기값</strong>으로 불러온 것이며 재단의 확정 규정이 아닙니다. <span id="ov-mealPolicyBadge"></span> 등 미확정 항목은 하단 관리자 설정에서 채워야 실제 계산에 반영됩니다.</p>
+
+        <div class="field-grid">
+          <div class="field">
+            <label class="field-label" for="ov-purposeDetail">출장 목적(상세)</label>
+            <input type="text" id="ov-purposeDetail" placeholder="예: 국제 콘퍼런스 참석">
+          </div>
+          <div class="field">
+            <label class="field-label" for="ov-depart">출국일시</label>
+            <input type="datetime-local" id="ov-depart">
+          </div>
+          <div class="field">
+            <label class="field-label" for="ov-arrive">입국일시</label>
+            <input type="datetime-local" id="ov-arrive">
+          </div>
+          <div class="field">
+            <label class="field-label" for="ov-transport">이동수단</label>
+            <select id="ov-transport">
+              <option value="air">항공기</option>
+              <option value="ship">선박</option>
+              <option value="other">기타</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-grid" style="margin-top:1rem; padding-top:1rem; border-top:1px dashed var(--line);">
+          <div class="field">
+            <label class="field-label" for="ov-country">출장 국가</label>
+            <select id="ov-country"></select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="ov-city">출장 도시</label>
+            <input type="text" id="ov-city" placeholder="예: 뉴욕 (지정 도시가 아니면 국가 기본등급 적용)">
+          </div>
+          <div class="field">
+            <label class="field-label">적용 지역등급</label>
+            <div id="ov-regionGradeDisplay" class="elig-tag ok" style="align-self:flex-start;">-</div>
+          </div>
+        </div>
+
+        <div class="field-grid" style="margin-top:1rem; padding-top:1rem; border-top:1px dashed var(--line);">
+          <div class="field">
+            <label class="field-label" for="ov-position">재단 직급/직위</label>
+            <select id="ov-position"></select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="ov-gradeOverride">여비 지급등급(자동/수동)</label>
+            <select id="ov-gradeOverride"></select>
+          </div>
+          <div class="field">
+            <label class="field-label">적용 등급 상태</label>
+            <div id="ov-gradeStatus" class="note" style="margin-top:0;">-</div>
+          </div>
+        </div>
+
+        <div style="margin-top:1.2rem;">
+          <div class="field-label" style="margin-bottom:.5rem;">환율 등록 <span style="font-weight:400;">(실시간 자동조회 아님 — 이 출장에서 쓰는 통화별로 직접 입력)</span></div>
+          <div class="table-scroll">
+            <table class="ledger">
+              <thead><tr><th>통화</th><th>환율(1통화=?원)</th><th>기준일자</th><th>출처</th><th></th></tr></thead>
+              <tbody id="fxTableBody"></tbody>
+            </table>
+          </div>
+          <div class="row-actions"><button id="addFxRowBtn">+ 통화 추가</button></div>
+        </div>
+
+        <div style="margin-top:1.2rem;">
+          <div class="field-label" style="margin-bottom:.5rem;">일비 계산</div>
+          <div class="ocr-readout" id="ov-dailyAllowanceCalc">-</div>
+        </div>
+
+        <div class="table-scroll" style="margin-top:1.2rem;">
+          <table class="ledger">
+            <thead><tr><th>날짜</th><th>조식</th><th>중식</th><th>석식</th><th>기준 식비</th></tr></thead>
+            <tbody id="ov-mealDaysBody"></tbody>
+          </table>
+        </div>
+        <p class="note" id="ov-mealPolicyNote"></p>
+
+        <div class="field-grid" style="margin-top:1.2rem; padding-top:1rem; border-top:1px dashed var(--line);">
+          <div class="field"><label class="field-label" for="ov-airfareAmount">항공권 실결제금액</label><input type="number" id="ov-airfareAmount" step="1000" min="0" value="0"></div>
+          <div class="field"><label class="field-label" for="ov-airfareCurrency">통화</label><select id="ov-airfareCurrency"></select></div>
+          <div class="field"><label class="field-label" for="ov-airfareTrip">왕복/편도</label><select id="ov-airfareTrip"><option value="round">왕복</option><option value="oneway">편도</option></select></div>
+          <div class="field"><label class="field-label" for="ov-airfareSeat">실제 이용 좌석등급</label>
+            <select id="ov-airfareSeat">
+              <option value="1등석">1등석</option>
+              <option value="2등석">2등석</option>
+              <option value="이코노미(2등석 상당)">이코노미(2등석 상당)</option>
+            </select>
+          </div>
+        </div>
+        <div class="note" id="ov-airfareResult"></div>
+
+        <div class="field-grid" style="margin-top:1.2rem; padding-top:1rem; border-top:1px dashed var(--line);">
+          <div class="field"><label class="field-label" for="ov-otherFare">기타 운임(국내 구간 등, 원화)</label><input type="number" id="ov-otherFare" step="1000" min="0" value="0"></div>
+          <div class="field"><label class="field-label" for="ov-otherFareNote">기타 운임 비고</label><input type="text" id="ov-otherFareNote" placeholder="예: 인천공항 왕복 국내선"></div>
+        </div>
+        <p class="note">숙박비·기타 인정경비 증빙은 아래 영수증 섹션에서 통화를 지정해 등록합니다. 다국가 순회 출장은 1차 버전에서 지원하지 않습니다(관리자 설정 참고).</p>
+      </section>
+
       <!-- 3. 영수증 -->
       <section class="card" id="receiptsSection" hidden>
         <div class="section-title"><span class="section-num">3</span>영수증 업로드 및 OCR 확인</div>
-        <p class="note">※ 숙박비·운임은 영수증 실비 정산 항목이라 여기서 증빙을 등록합니다. 식비·일비는 규정에 따른 정액 계산이라 영수증이 필요 없습니다. OCR은 프로토타입 시뮬레이션이며, 실제 엔진 연동 시에도 이 화면 구조(인식값→사람 확인→확정값)는 그대로 유지됩니다.</p>
+        <p class="note">※ 숙박비·운임은 영수증 실비 정산 항목이라 여기서 증빙을 등록합니다. 식비·일비는 규정에 따른 정액 계산이라 영수증이 필요 없습니다. 국외출장에서는 통화를 지정해 원화 환산 후 규정상 인정금액과 비교합니다. OCR은 프로토타입 시뮬레이션이며, 실제 엔진 연동 시에도 이 화면 구조(인식값→사람 확인→확정값)는 그대로 유지됩니다.</p>
         <div id="receiptsList"></div>
         <div class="row-actions"><button id="addReceiptBtn">+ 영수증 추가</button></div>
       </section>
@@ -284,6 +401,55 @@
         <div class="section-title"><span class="section-num">4</span>검증 결과</div>
         <div class="chip-list" id="warningsList"></div>
       </section>
+
+      <!-- 관리자 설정 -->
+      <details class="card" id="adminPanel">
+        <summary class="section-title" style="cursor:pointer; margin-bottom:0;"><span class="section-num">A</span>관리자 설정 — 국외여비 기준 관리</summary>
+        <div style="margin-top:1.3rem; display:flex; flex-direction:column; gap:1.8rem;">
+
+          <div>
+            <div class="field-label" style="margin-bottom:.5rem;">여행자 등급별 일비·숙박비상한·식비·항공등급 (「공무원 여비 규정」 별표3·별표4 초기값)</div>
+            <div class="table-scroll">
+              <table class="ledger">
+                <thead><tr><th>등급</th><th>일비(USD)</th><th>항공등급</th><th>가등급 숙박상한/식비</th><th>나등급 숙박상한/식비</th><th>다등급 숙박상한/식비</th><th>라등급 숙박상한/식비</th><th>상태</th></tr></thead>
+                <tbody id="adminGradeTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <div class="field-label" style="margin-bottom:.5rem;">재단 직급/직위 ↔ 여행자 등급 매핑</div>
+            <div class="table-scroll">
+              <table class="ledger"><thead><tr><th>직급/직위</th><th>매핑 여행자등급</th><th>상태</th><th></th></tr></thead><tbody id="adminPositionTableBody"></tbody></table>
+            </div>
+            <div class="row-actions"><button id="addPositionRowBtn">+ 직급 추가</button></div>
+          </div>
+
+          <div>
+            <div class="field-label" style="margin-bottom:.5rem;">국가별 지역등급 (「공무원 여비 규정」 별표4 비고2 초기값)</div>
+            <input type="text" id="adminCountryFilter" placeholder="국가명 검색" style="margin-bottom:.6rem; max-width:220px; padding:.5rem .6rem; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-family:var(--font-body);">
+            <div class="table-scroll" style="max-height:320px; overflow-y:auto;">
+              <table class="ledger"><thead><tr><th>국가</th><th>지역등급</th><th>상태</th></tr></thead><tbody id="adminCountryTableBody"></tbody></table>
+            </div>
+          </div>
+
+          <div>
+            <div class="field-label" style="margin-bottom:.5rem;">도시 예외 등급 (국가 기본등급과 다른 지정 도시)</div>
+            <div class="table-scroll">
+              <table class="ledger"><thead><tr><th>국가</th><th>도시</th><th>지역등급</th><th>상태</th><th></th></tr></thead><tbody id="adminCityTableBody"></tbody></table>
+            </div>
+            <div class="row-actions"><button id="addCityRowBtn">+ 도시 예외 추가</button></div>
+          </div>
+
+          <div>
+            <div class="field-label" style="margin-bottom:.5rem;">정책 설정</div>
+            <div class="table-scroll">
+              <table class="ledger"><thead><tr><th>항목</th><th>현재값</th><th>상태</th></tr></thead><tbody id="adminPolicyTableBody"></tbody></table>
+            </div>
+          </div>
+
+        </div>
+      </details>
 
     </div>
 
@@ -332,7 +498,72 @@
     '주유비':[20000,70000], '기타':[3000,20000]
   };
 
-  let rowSeq = 1, receiptSeq = 1;
+  const STATUS_LABEL = {law:'법령 기준', org:'재단 자체 기준', undetermined:'미확정'};
+  const CURRENCIES = ['USD','JPY','EUR','GBP','CNY','TWD','KRW'];
+  const REGION_GRADES = ['가','나','다','라'];
+  const OVERSEAS_RECEIPT_CATEGORIES = ['숙박비','기타'];
+  const EXCESS_CAP_RATIO = 0.5; // 공무원 여비 규정 제16조① — 숙박비·식비 초과지출 시 상한액의 1/2 이내 추가지급 가능(예외신청 대상, 자동지급 아님)
+
+  function rateRow(dailyAllowanceUSD, airfareClass, 가, 나, 다, 라){
+    return {dailyAllowanceUSD, airfareClass, rates:{
+      가:{lodgingCapUSD:가[0], mealUSD:가[1]}, 나:{lodgingCapUSD:나[0], mealUSD:나[1]},
+      다:{lodgingCapUSD:다[0], mealUSD:다[1]}, 라:{lodgingCapUSD:라[0], mealUSD:라[1]},
+    }};
+  }
+
+  // 국가별 지역등급 — 「공무원 여비 규정」 별표4 비고2 (2021.5.25 개정, 2026.9 현재 시행 중)
+  const COUNTRY_GRADE_SEED = [
+    ['홍콩','가'], ['싱가포르','가'],
+    // 나등급
+    ['사모아','나'],['오스트레일리아','나'],['인도','나'],['일본','나'],['카자흐스탄','나'],['쿡제도','나'],['타이완','나'],['파푸아뉴기니','나'],
+    ['멕시코','나'],['미국','나'],['바베이도스','나'],['세인트루시아','나'],['세인트빈센트그레나딘','나'],['세인트키츠네비스','나'],['아이티','나'],['앤티가바부다','나'],['자메이카','나'],['캐나다','나'],['트리니다드토바고','나'],
+    ['그리스','나'],['네덜란드','나'],['노르웨이','나'],['덴마크','나'],['독일','나'],['러시아','나'],['룩셈부르크','나'],['벨기에','나'],['사이프러스','나'],['스웨덴','나'],['스위스','나'],['스페인','나'],['아이슬란드','나'],['아일랜드','나'],['영국','나'],['오스트리아','나'],['이탈리아','나'],['포르투갈','나'],['프랑스','나'],['핀란드','나'],['헝가리','나'],
+    ['가나','나'],['가봉','나'],['남수단','나'],['남아프리카공화국','나'],['리비아','나'],['모로코','나'],['바레인','나'],['사우디아라비아','나'],['세이셸','나'],['아랍에미리트','나'],['앙골라','나'],['에티오피아','나'],['오만','나'],['우간다','나'],['이스라엘','나'],['이집트','나'],['적도기니','나'],['카타르','나'],['코트디부아르','나'],['콩고민주공화국','나'],['쿠웨이트','나'],
+    // 다등급
+    ['뉴질랜드','다'],['니우에','다'],['마셜군도','다'],['말레이시아','다'],['방글라데시','다'],['브루나이','다'],['아제르바이잔','다'],['인도네시아','다'],['중국','다'],['키르키즈공화국','다'],['타이','다'],['터키','다'],['투르크메니스탄','다'],['파키스탄','다'],['피지','다'],
+    ['가이아나','다'],['과테말라','다'],['도미니카공화국','다'],['베네수엘라','다'],['벨리즈','다'],['브라질','다'],['아르헨티나','다'],['에콰도르','다'],['우루과이','다'],['칠레','다'],['코스타리카','다'],['파나마','다'],
+    ['라트비아','다'],['루마니아','다'],['리투아니아','다'],['몬테네그로','다'],['불가리아','다'],['세르비아','다'],['슬로바키아','다'],['슬로베니아','다'],['에스토니아','다'],['우크라이나','다'],['체코','다'],['크로아티아','다'],['폴란드','다'],
+    ['기니','다'],['나이지리아','다'],['니제르','다'],['라이베리아','다'],['레바논','다'],['르완다','다'],['말리','다'],['모리셔스','다'],['모잠비크','다'],['보츠와나','다'],['부르키나파소','다'],['상투메프린시페','다'],['세네갈','다'],['수단','다'],['스와질란드','다'],['시에라리온','다'],['아프가니스탄','다'],['알제리','다'],['요르단','다'],['이라크','다'],['잠비아','다'],['중앙아프리카공화국','다'],['카메룬','다'],['케냐','다'],['탄자니아','다'],
+    // 라등급
+    ['네팔','라'],['동티모르','라'],['라오스','라'],['몽골','라'],['미얀마','라'],['미크로네시아','라'],['베트남','라'],['스리랑카','라'],['우즈베키스탄','라'],['캄보디아','라'],['타지키스탄','라'],['통가','라'],['필리핀','라'],
+    ['니카라과','라'],['볼리비아','라'],['수리남','라'],['엘살바도르','라'],['온두라스','라'],['콜롬비아','라'],['파라과이','라'],['페루','라'],
+    ['마케도니아','라'],['몰도바','라'],['벨라루스','라'],['보스니아헤르체고비나','라'],['알바니아','라'],
+    ['감비아','라'],['기니비사우','라'],['나미비아','라'],['레소토','라'],['마다가스카르','라'],['말라위','라'],['모리타니','라'],['소말리아','라'],['예멘','라'],['이란','라'],['짐바브웨','라'],['튀니지','라'],
+  ];
+  const CITY_OVERRIDE_SEED = [
+    ['일본','도쿄','가'], ['미국','뉴욕','가'], ['미국','로스엔젤레스','가'], ['미국','샌프란시스코','가'], ['미국','워싱턴 D.C.','가'],
+    ['영국','런던','가'], ['러시아','모스크바','가'], ['프랑스','파리','가'], ['스위스','제네바','가'], ['중국','베이징','나'],
+  ];
+
+  let overseasConfig = {
+    travelerGrades: [
+      Object.assign({id:'g1', label:'1등급 (별표1 제1호가목 상당)', status:'law'}, rateRow(60,'1등석',[471,186],[422,136],[271,102],[216,85])),
+      Object.assign({id:'g2', label:'2등급 (별표1 제1호나목 상당)', status:'law'}, rateRow(50,'1등석',[389,160],[289,117],[215,87],[161,73])),
+      Object.assign({id:'g3', label:'3등급 (별표1 제1호다목 상당)', status:'law'}, rateRow(40,'1등석',[282,133],[207,99],[162,72],[108,61])),
+      Object.assign({id:'g4', label:'4등급 (별표1 제1호라목 상당)', status:'law'}, rateRow(35,'1등석',[223,107],[160,78],[130,58],[85,49])),
+      Object.assign({id:'g5', label:'5등급 (별표1 제2호 상당)', status:'law'}, rateRow(30,'2등석',[176,81],[137,59],[106,44],[81,37])),
+    ],
+    countries: COUNTRY_GRADE_SEED.map(([country,grade])=>({country, grade, status:'law'})),
+    cityOverrides: CITY_OVERRIDE_SEED.map(([country,city,grade],i)=>({id:i+1, country, city, grade, status:'law'})),
+    positionMapping: [
+      {id:1, position:'이사장/상임이사', gradeId:'', status:'undetermined'},
+      {id:2, position:'부장/팀장', gradeId:'', status:'undetermined'},
+      {id:3, position:'팀원', gradeId:'', status:'undetermined'},
+    ],
+    policies: {
+      fxBasis: {label:'환율 적용 기준일', value:'', status:'undetermined'},
+      fxSource: {label:'환율 출처', value:'', status:'undetermined'},
+      mealDeductionMethod: {label:'식사 제공 시 차감 방식', value:'none', status:'undetermined'},
+      dayCalc: {label:'출국일/귀국일 계산 기준', value:'미확정 — 현재는 달력일수(출국~입국, 현지시각 가정)로 임시 계산', status:'undetermined'},
+      multiCountry: {label:'다국가 순회 출장 계산', value:'미확정 — 1차 버전은 단일 국가만 지원', status:'undetermined'},
+      excessApproval: {label:'초과지출 추가지급 승인 절차', value:'수동 승인 필요(기본값) — 담당자가 건별로 승인 처리', status:'undetermined'},
+      evidence: {label:'증빙자료 기준(일반 정산)', value:'', status:'undetermined'},
+      settlementDeadline: {label:'정산기한(일반)', value:'', status:'undetermined'},
+    },
+    positionSeq: 4, citySeq: CITY_OVERRIDE_SEED.length + 1,
+  };
+
+  let rowSeq = 1, receiptSeq = 1, fxSeq = 1;
   const state = {
     applicant:'홍길동', purpose:'external', tripType:'local', monthlyPaidBefore:0,
     localRows: [],
@@ -341,7 +572,14 @@
       fuelType:'휘발유', fuelPrice: FUEL['휘발유'].price, totalDistance:0,
       privateEvidencePhoto:false, mealProvided:{},
     },
+    overseas: {
+      purposeDetail:'', depart:'', arrive:'', transport:'air',
+      country:'', city:'', positionId:1, gradeOverride:'',
+      airfareAmount:0, airfareCurrency:'USD', airfareTrip:'round', airfareSeat:'이코노미(2등석 상당)',
+      otherFare:0, otherFareNote:'', mealProvided:{}, fxRates:[],
+    },
     receipts: [],
+    overseasReceipts: [],
   };
 
   function pad(n){ return String(n).padStart(2,'0'); }
@@ -384,7 +622,22 @@
     state.distant.arrive = toLocalInputValue(dde);
     state.distant.totalDistance = 180;
 
-    state.receipts.push({id:receiptSeq++, fileName:'', thumb:null, category:'숙박비', vendor:'○○호텔', date:toDateOnly(dds), ocrCategory:'숙박비', ocrVendor:'○○호텔', ocrDate:toDateOnly(dds), ocrAmount:120000, confirmedAmount:120000, seatClass:''});
+    state.receipts.push({id:receiptSeq++, fileName:'', thumb:null, category:'숙박비', vendor:'○○호텔', date:toDateOnly(dds), ocrCategory:'숙박비', ocrVendor:'○○호텔', ocrDate:toDateOnly(dds), ocrAmount:120000, confirmedAmount:120000, currency:'KRW', seatClass:''});
+
+    const ovs = new Date(today); ovs.setDate(ovs.getDate()+10); ovs.setHours(9,0,0,0);
+    const ove = new Date(today); ove.setDate(ove.getDate()+13); ove.setHours(18,0,0,0);
+    state.overseas.depart = toLocalInputValue(ovs);
+    state.overseas.arrive = toLocalInputValue(ove);
+    state.overseas.purposeDetail = '국제 콘퍼런스 참석';
+    state.overseas.country = '미국';
+    state.overseas.city = '뉴욕';
+    state.overseas.gradeOverride = 'g3';
+    state.overseas.airfareAmount = 1800;
+    state.overseas.airfareCurrency = 'USD';
+    state.overseas.fxRates = [
+      {id:fxSeq++, currency:'USD', rate:1380, basisDate:toDateOnly(ovs), source:'하나은행 고시환율(예시)'},
+    ];
+    state.overseasReceipts.push({id:receiptSeq++, fileName:'', thumb:null, category:'숙박비', vendor:'뉴욕 ○○호텔', date:toDateOnly(ovs), ocrCategory:'숙박비', ocrVendor:'뉴욕 ○○호텔', ocrDate:toDateOnly(ovs), ocrAmount:320, confirmedAmount:320, currency:'USD', seatClass:'', excessReason:'', excessRequested:false, excessApproval:'none'});
   }
   seedDefaults();
 
@@ -569,10 +822,220 @@
     });
   }
 
+  // ---------- OVERSEAS ----------
+  function activeReceipts(){ return state.tripType === 'overseas' ? state.overseasReceipts : state.receipts; }
+  function activeReceiptCategories(){ return state.tripType === 'overseas' ? OVERSEAS_RECEIPT_CATEGORIES : RECEIPT_CATEGORIES; }
+
+  function getFxRate(currency){
+    if(currency === 'KRW') return {rate:1, basisDate:'', source:''};
+    const row = state.overseas.fxRates.find(r=>r.currency===currency);
+    return (row && Number(row.rate) > 0) ? row : null;
+  }
+
+  function resolveRegionGrade(){
+    const c = state.overseas.country;
+    if(!c) return null;
+    const countryRow = overseasConfig.countries.find(x=>x.country===c);
+    if(!countryRow) return null;
+    const city = (state.overseas.city||'').trim();
+    if(city){
+      const override = overseasConfig.cityOverrides.find(o=>o.country===c && o.city===city);
+      if(override) return {grade:override.grade, reason:`'${city}'은(는) 지정 도시로 ${override.grade}등급 적용`};
+    }
+    return {grade:countryRow.grade, reason:`${c} 기본등급 ${countryRow.grade}등급 적용`};
+  }
+
+  function resolveTravelerGrade(){
+    const mapping = overseasConfig.positionMapping.find(p=>p.id===Number(state.overseas.positionId));
+    const mappedGradeId = mapping ? mapping.gradeId : '';
+    const effectiveId = state.overseas.gradeOverride || mappedGradeId;
+    const grade = overseasConfig.travelerGrades.find(g=>g.id===effectiveId) || null;
+    return {grade, mappedGradeId, hasMappingConfirmed: !!mappedGradeId, usingManualOverride: !!state.overseas.gradeOverride && state.overseas.gradeOverride !== mappedGradeId};
+  }
+
+  function calcOverseas(){
+    const o = state.overseas;
+    const dates = eachDateInRange(o.depart, o.arrive);
+    if(dates.length === 0){
+      return {total:0, dates:[], mealDays:[], warnings:[{level:'danger', text:'출국/입국 일시를 입력하세요.'}]};
+    }
+    const warnings = [];
+    const regionInfo = resolveRegionGrade();
+    if(!regionInfo) warnings.push({level:'danger', text:'출장 국가를 선택하세요 (지역등급을 확인할 수 없습니다).'});
+    const travelerInfo = resolveTravelerGrade();
+    if(!travelerInfo.grade) warnings.push({level:'danger', text:'여비 지급등급을 확인할 수 없습니다. 재단 직급 매핑 또는 수동 등급을 선택하세요.'});
+    if(travelerInfo.grade && !travelerInfo.hasMappingConfirmed) warnings.push({level:'warn', text:'재단 직급↔여비등급 매핑이 미확정 상태입니다. 현재는 수동 선택 등급으로 임시 계산 중입니다.'});
+
+    const usdFx = getFxRate('USD');
+    if(!usdFx) warnings.push({level:'danger', text:'USD 환율이 등록되지 않아 법정 기준금액(USD)을 원화로 환산할 수 없습니다.'});
+
+    let dailyAllowanceUSD=0, lodgingCapUSD=0, mealUSD=0, airfareClass='';
+    if(regionInfo && travelerInfo.grade){
+      const rate = travelerInfo.grade.rates[regionInfo.grade];
+      dailyAllowanceUSD = travelerInfo.grade.dailyAllowanceUSD;
+      lodgingCapUSD = rate.lodgingCapUSD;
+      mealUSD = rate.mealUSD;
+      airfareClass = travelerInfo.grade.airfareClass;
+    }
+
+    const days = dates.length;
+    const dailyAllowanceTotalUSD = dailyAllowanceUSD * days;
+    const dailyAllowanceKRW = usdFx ? dailyAllowanceTotalUSD * usdFx.rate : 0;
+
+    const mealPolicy = overseasConfig.policies.mealDeductionMethod;
+    const mealDays = dates.map(dt=>{
+      const provided = o.mealProvided[dt] || {breakfast:false,lunch:false,dinner:false};
+      let amountUSD = mealUSD;
+      if(mealPolicy.value === 'thirds'){
+        const deductCount = [provided.breakfast, provided.lunch, provided.dinner].filter(Boolean).length;
+        amountUSD = mealUSD * (3 - deductCount) / 3;
+      }
+      return {date:dt, provided, amountUSD};
+    });
+    const mealTotalUSD = mealDays.reduce((s,m)=>s+m.amountUSD, 0);
+    const mealTotalKRW = usdFx ? mealTotalUSD * usdFx.rate : 0;
+    if(mealPolicy.status === 'undetermined'){
+      warnings.push({level:'warn', text:'식사 제공 시 식비 차감 기준이 미확정 상태입니다. 현재는 전액 지급으로 임시 계산되었습니다.'});
+    }
+
+    const nights = days - 1;
+    const lodgingCapKRW = usdFx ? lodgingCapUSD * usdFx.rate : 0;
+    const lodgingReceipts = state.overseasReceipts.filter(r=>r.category==='숙박비');
+    let lodgingRecognizedTotal = 0;
+    lodgingReceipts.forEach(r=>{
+      const fx = getFxRate(r.currency);
+      if(!fx){ warnings.push({level:'danger', text:`${r.vendor||'숙박 영수증'}: ${r.currency} 환율이 등록되지 않아 환산할 수 없습니다.`}); return; }
+      const confirmedKRW = (Number(r.confirmedAmount)||0) * fx.rate;
+      let recognized = Math.min(confirmedKRW, lodgingCapKRW);
+      if(confirmedKRW > lodgingCapKRW){
+        const excess = confirmedKRW - lodgingCapKRW;
+        const approvable = excess * EXCESS_CAP_RATIO;
+        const approved = (r.excessRequested && r.excessApproval === 'approved') ? approvable : 0;
+        recognized += approved;
+        warnings.push({level: r.excessApproval==='approved' ? 'warn' : 'danger',
+          text:`${r.vendor||'숙박비'} 초과지출: 상한 ${won(lodgingCapKRW)} 대비 ${won(confirmedKRW)} 사용(초과 ${won(excess)}) — ${r.excessRequested ? '추가지급 '+(r.excessApproval==='approved'?'승인됨':r.excessApproval==='rejected'?'반려됨':'승인대기') : '추가지급 미신청'}`});
+      }
+      lodgingRecognizedTotal += recognized;
+    });
+    if(nights > 0 && lodgingReceipts.length < nights){
+      warnings.push({level:'danger', text:`숙박 증빙 부족: ${nights}박 중 ${lodgingReceipts.length}건만 제출됨`});
+    }
+
+    const airfareFx = getFxRate(o.airfareCurrency);
+    const airfareKRW = (Number(o.airfareAmount) > 0 && airfareFx) ? Number(o.airfareAmount) * airfareFx.rate : 0;
+    if(Number(o.airfareAmount) > 0 && !airfareFx) warnings.push({level:'danger', text:`항공권 통화(${o.airfareCurrency}) 환율이 등록되지 않았습니다.`});
+    if(airfareClass && o.airfareSeat && o.airfareSeat !== airfareClass && !(airfareClass==='2등석' && o.airfareSeat==='이코노미(2등석 상당)')){
+      warnings.push({level:'warn', text:`항공권 좌석등급 확인 필요: 기준은 ${airfareClass}이나 실제 이용 좌석은 '${o.airfareSeat}'입니다.`});
+    }
+
+    const otherFareKRW = Number(o.otherFare) || 0;
+
+    const otherReceipts = state.overseasReceipts.filter(r=>r.category==='기타');
+    let otherExpenseKRW = 0;
+    otherReceipts.forEach(r=>{
+      const fx = getFxRate(r.currency);
+      if(fx) otherExpenseKRW += (Number(r.confirmedAmount)||0) * fx.rate;
+      else warnings.push({level:'warn', text:`${r.vendor||'기타 영수증'}: ${r.currency} 환율이 등록되지 않았습니다.`});
+    });
+
+    const total = dailyAllowanceKRW + mealTotalKRW + lodgingRecognizedTotal + airfareKRW + otherFareKRW + otherExpenseKRW;
+
+    return {
+      dates, days, nights, regionInfo, travelerInfo, dailyAllowanceUSD, dailyAllowanceTotalUSD, dailyAllowanceKRW,
+      mealDays, mealTotalUSD, mealTotalKRW, lodgingRecognizedTotal, lodgingCapKRW, lodgingCapUSD,
+      airfareKRW, airfareClass, otherFareKRW, otherExpenseKRW, total, warnings, usdFx,
+    };
+  }
+
+  function renderOverseasStaticOptions(){
+    const countrySel = document.getElementById('ov-country');
+    const countries = overseasConfig.countries.map(c=>c.country).slice().sort((a,b)=>a.localeCompare(b,'ko'));
+    countrySel.innerHTML = '<option value="">선택</option>' + countries.map(c=>`<option value="${c}" ${state.overseas.country===c?'selected':''}>${c}</option>`).join('');
+
+    const posSel = document.getElementById('ov-position');
+    posSel.innerHTML = overseasConfig.positionMapping.map(p=>`<option value="${p.id}" ${state.overseas.positionId===p.id?'selected':''}>${p.position}</option>`).join('');
+
+    const gradeSel = document.getElementById('ov-gradeOverride');
+    gradeSel.innerHTML = '<option value="">(매핑값 사용)</option>' + overseasConfig.travelerGrades.map(g=>`<option value="${g.id}" ${state.overseas.gradeOverride===g.id?'selected':''}>${g.label}</option>`).join('');
+
+    const airCur = document.getElementById('ov-airfareCurrency');
+    airCur.innerHTML = CURRENCIES.filter(c=>c!=='KRW').map(c=>`<option value="${c}" ${state.overseas.airfareCurrency===c?'selected':''}>${c}</option>`).join('');
+  }
+
+  function renderFxTable(){
+    const body = document.getElementById('fxTableBody');
+    body.innerHTML = state.overseas.fxRates.map(r=>`
+      <tr>
+        <td><select data-fx-id="${r.id}" data-field="currency">${CURRENCIES.filter(c=>c!=='KRW').map(c=>`<option value="${c}" ${r.currency===c?'selected':''}>${c}</option>`).join('')}</select></td>
+        <td><input type="number" step="0.01" min="0" data-fx-id="${r.id}" data-field="rate" value="${r.rate}"></td>
+        <td><input type="date" data-fx-id="${r.id}" data-field="basisDate" value="${r.basisDate||''}"></td>
+        <td><input type="text" data-fx-id="${r.id}" data-field="source" value="${r.source||''}" placeholder="예: 하나은행 고시환율"></td>
+        <td><button class="danger-ghost" data-action="delete-fx" data-fx-id="${r.id}">삭제</button></td>
+      </tr>`).join('') || '<tr><td colspan="5" style="color:var(--ink-muted); font-family:var(--font-body);">등록된 환율이 없습니다. USD 환율은 필수입니다.</td></tr>';
+  }
+
+  function renderOverseasMealDaysBody(){
+    const dates = eachDateInRange(state.overseas.depart, state.overseas.arrive);
+    const body = document.getElementById('ov-mealDaysBody');
+    if(dates.length === 0){ body.innerHTML = '<tr><td colspan="5" style="color:var(--ink-muted); font-family:var(--font-body);">출국/입국 일시를 입력하세요.</td></tr>'; return; }
+    body.innerHTML = dates.map(dt=>{
+      const p = state.overseas.mealProvided[dt] || {breakfast:false,lunch:false,dinner:false};
+      return `<tr>
+        <td>${dt}</td>
+        <td><label style="display:flex; align-items:center; gap:.35rem; font-family:var(--font-body);"><input type="checkbox" data-ov-date="${dt}" data-ov-meal="breakfast" ${p.breakfast?'checked':''}> 제공받음</label></td>
+        <td><label style="display:flex; align-items:center; gap:.35rem; font-family:var(--font-body);"><input type="checkbox" data-ov-date="${dt}" data-ov-meal="lunch" ${p.lunch?'checked':''}> 제공받음</label></td>
+        <td><label style="display:flex; align-items:center; gap:.35rem; font-family:var(--font-body);"><input type="checkbox" data-ov-date="${dt}" data-ov-meal="dinner" ${p.dinner?'checked':''}> 제공받음</label></td>
+        <td id="ov-mealamt-${dt}">-</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderOverseasComputed(result){
+    const o = state.overseas;
+    const regionDisplay = document.getElementById('ov-regionGradeDisplay');
+    if(result.regionInfo){ regionDisplay.textContent = `${result.regionInfo.grade}등급 — ${result.regionInfo.reason}`; regionDisplay.className = 'elig-tag ok'; }
+    else { regionDisplay.textContent = '국가를 선택하세요'; regionDisplay.className = 'elig-tag no'; }
+
+    const gradeStatusEl = document.getElementById('ov-gradeStatus');
+    if(result.travelerInfo && result.travelerInfo.grade){
+      gradeStatusEl.textContent = result.travelerInfo.hasMappingConfirmed && !result.travelerInfo.usingManualOverride
+        ? `${result.travelerInfo.grade.label} — 직급 매핑에 따라 자동 설정됨(재단 자체 기준)`
+        : `${result.travelerInfo.grade.label} — 직급 매핑 미확정으로 수동 선택값 사용 중(미확정)`;
+    } else {
+      gradeStatusEl.textContent = '등급을 확인할 수 없습니다.';
+    }
+
+    const calcEl = document.getElementById('ov-dailyAllowanceCalc');
+    if(result.dates && result.dates.length){
+      const krwLine = result.usdFx ? `${won(result.dailyAllowanceKRW)}` : '환율 미입력 — 원화 환산 불가';
+      calcEl.innerHTML = `출장기간: ${result.dates[0]} ~ ${result.dates[result.dates.length-1]} (${result.days}일)<br>`
+        + `일비 기준: USD ${result.dailyAllowanceUSD}<br>`
+        + `계산: ${result.dailyAllowanceUSD} USD × ${result.days}일 = ${result.dailyAllowanceTotalUSD} USD<br>`
+        + `원화환산: ${krwLine}`;
+    } else {
+      calcEl.textContent = '-';
+    }
+
+    (result.mealDays||[]).forEach(m=>{
+      const el = document.getElementById('ov-mealamt-'+m.date);
+      if(el) el.textContent = result.usdFx ? `${won(m.amountUSD*result.usdFx.rate)} (USD ${m.amountUSD.toFixed(1)})` : `USD ${m.amountUSD.toFixed(1)} (환율 미입력)`;
+    });
+    document.getElementById('ov-mealPolicyNote').textContent = overseasConfig.policies.mealDeductionMethod.status === 'undetermined'
+      ? '※ 식사 제공 시 차감 기준이 미확정 상태라 현재는 체크와 무관하게 전액 지급으로 계산됩니다.'
+      : '※ 관리자 설정에 등록된 차감 기준이 적용되어 계산됩니다.';
+
+    const airEl = document.getElementById('ov-airfareResult');
+    if(result.travelerInfo && result.travelerInfo.grade){
+      airEl.textContent = `기준 항공등급: ${result.airfareClass}(별표3, 실비 지급 — 상한 없음) · 원화환산 인정금액: ${result.airfareKRW ? won(result.airfareKRW) : '환율 미입력'}`;
+    } else {
+      airEl.textContent = '';
+    }
+  }
+
   // ---------- RECEIPTS ----------
   function findDuplicateReceipts(){
     const seen = {}, dups = new Set();
-    state.receipts.forEach(r=>{
+    activeReceipts().forEach(r=>{
       const key = `${r.date}|${r.category}|${r.confirmedAmount}`;
       if(!r.date) return;
       if(seen[key] !== undefined){ dups.add(seen[key]); dups.add(r.id); }
@@ -582,9 +1045,10 @@
   }
 
   function renderReceiptsList(){
+    const isOverseas = state.tripType === 'overseas';
     const list = document.getElementById('receiptsList');
-    list.innerHTML = state.receipts.map((r,idx)=>{
-      const seatClassField = (r.category==='철도운임' || r.category==='항공운임') ? `
+    list.innerHTML = activeReceipts().map((r,idx)=>{
+      const seatClassField = (!isOverseas && (r.category==='철도운임' || r.category==='항공운임')) ? `
         <div class="field">
           <label class="field-label">좌석등급</label>
           <select data-id="${r.id}" data-field="seatClass">
@@ -593,7 +1057,32 @@
             <option value="우등석/비즈니스" ${r.seatClass==='우등석/비즈니스'?'selected':''}>우등석/비즈니스</option>
           </select>
         </div>` : '';
-      const ocrLine = r.ocrCategory ? `OCR 인식 → 사용처: ${r.ocrVendor} · 날짜: ${r.ocrDate} · 분류: ${r.ocrCategory} · 금액: ${won(r.ocrAmount)}` : 'OCR 미실행 — 파일을 첨부하고 인식 시뮬레이션을 눌러주세요.';
+      const currencyField = isOverseas ? `
+        <div class="field">
+          <label class="field-label">통화</label>
+          <select data-id="${r.id}" data-field="currency">
+            ${CURRENCIES.filter(c=>c!=='KRW').map(c=>`<option value="${c}" ${r.currency===c?'selected':''}>${c}</option>`).join('')}
+          </select>
+        </div>` : '';
+      const ocrLine = r.ocrCategory ? `OCR 인식 → 사용처: ${r.ocrVendor} · 날짜: ${r.ocrDate} · 분류: ${r.ocrCategory} · 금액: ${r.ocrAmount}${isOverseas ? ' '+(r.currency||'USD') : '원'}` : 'OCR 미실행 — 파일을 첨부하고 인식 시뮬레이션을 눌러주세요.';
+      const excessBlock = (isOverseas && r.category==='숙박비') ? `
+        <div style="border-top:1px dashed var(--line); padding-top:.8rem;">
+          <div class="field-label" style="margin-bottom:.5rem;">초과지출 추가지급 신청 (상한 초과 시에만 의미가 있음 — 자동 지급 아님, 예외 승인 대상)</div>
+          <div class="field-grid">
+            <div class="field"><label class="field-label">초과지출 사유</label><input type="text" data-id="${r.id}" data-field="excessReason" value="${r.excessReason||''}" placeholder="예: 현지 숙박시설 부족"></div>
+            <div class="field"><label class="field-label">추가 지급 신청</label>
+              <label style="display:flex; align-items:center; gap:.4rem; font-size:.86rem;"><input type="checkbox" data-id="${r.id}" data-field="excessRequested" ${r.excessRequested?'checked':''}> 신청함</label>
+            </div>
+            <div class="field"><label class="field-label">승인 상태</label>
+              <select data-id="${r.id}" data-field="excessApproval">
+                <option value="none" ${r.excessApproval==='none'?'selected':''}>미신청/해당없음</option>
+                <option value="pending" ${r.excessApproval==='pending'?'selected':''}>승인대기</option>
+                <option value="approved" ${r.excessApproval==='approved'?'selected':''}>승인</option>
+                <option value="rejected" ${r.excessApproval==='rejected'?'selected':''}>반려</option>
+              </select>
+            </div>
+          </div>
+        </div>` : '';
       return `
       <div class="receipt-card" data-card-id="${r.id}">
         <div class="receipt-head">
@@ -612,7 +1101,7 @@
           <div class="field">
             <label class="field-label">분류(확정)</label>
             <select data-id="${r.id}" data-field="category">
-              ${RECEIPT_CATEGORIES.map(c=>`<option value="${c}" ${r.category===c?'selected':''}>${c}</option>`).join('')}
+              ${activeReceiptCategories().map(c=>`<option value="${c}" ${r.category===c?'selected':''}>${c}</option>`).join('')}
             </select>
           </div>
           <div class="field">
@@ -625,10 +1114,12 @@
           </div>
           <div class="field">
             <label class="field-label">금액(확정)</label>
-            <input type="number" step="100" min="0" data-id="${r.id}" data-field="amount" value="${r.confirmedAmount||0}">
+            <input type="number" step="${isOverseas?'0.01':'100'}" min="0" data-id="${r.id}" data-field="amount" value="${r.confirmedAmount||0}">
           </div>
+          ${currencyField}
           ${seatClassField}
         </div>
+        ${excessBlock}
         <div class="recognized-line" id="recog-${r.id}"></div>
       </div>`;
     }).join('');
@@ -636,14 +1127,38 @@
   }
 
   function updateReceiptRecognizedDisplays(){
-    const cap = LODGING_CAP[state.distant.region];
+    const isOverseas = state.tripType === 'overseas';
+    const cap = isOverseas ? null : LODGING_CAP[state.distant.region];
     const dupIds = findDuplicateReceipts();
-    state.receipts.forEach(r=>{
+    activeReceipts().forEach(r=>{
       const el = document.getElementById('recog-'+r.id);
       const card = document.querySelector(`[data-card-id="${r.id}"]`);
       if(card) card.classList.toggle('duplicate', dupIds.has(r.id));
       if(!el) return;
-      if(r.category === '숙박비'){
+      if(isOverseas){
+        const fx = getFxRate(r.currency);
+        const confirmedKRW = fx ? (Number(r.confirmedAmount)||0) * fx.rate : null;
+        if(r.category === '숙박비'){
+          const usdFx = getFxRate('USD');
+          const travelerInfo = resolveTravelerGrade();
+          const regionInfo = resolveRegionGrade();
+          if(!fx || !usdFx || !travelerInfo.grade || !regionInfo){
+            el.textContent = '환율 또는 등급/지역 정보가 없어 인정금액을 계산할 수 없습니다.';
+          } else {
+            const lodgingCapUSD = travelerInfo.grade.rates[regionInfo.grade].lodgingCapUSD;
+            const capKRW = lodgingCapUSD * usdFx.rate;
+            if(confirmedKRW > capKRW){
+              const excess = confirmedKRW - capKRW;
+              const approved = (r.excessRequested && r.excessApproval==='approved') ? excess*EXCESS_CAP_RATIO : 0;
+              el.innerHTML = `상한 ${won(capKRW)} · 실사용 ${won(confirmedKRW)} · <span class="over">초과 ${won(excess)}</span> · 추가인정 ${won(approved)} · 최종인정 <span class="over">${won(capKRW+approved)}</span>`;
+            } else {
+              el.innerHTML = `인정금액 <span class="fit">${won(confirmedKRW)}</span> (상한 ${won(capKRW)} 이내)`;
+            }
+          }
+        } else {
+          el.textContent = fx ? `원화환산 인정금액 ${won(confirmedKRW)}` : `${r.currency} 환율 미등록 — 환산 불가`;
+        }
+      } else if(r.category === '숙박비'){
         const confirmed = Number(r.confirmedAmount)||0;
         const recognized = Math.min(confirmed, cap);
         if(confirmed > cap){
@@ -663,16 +1178,28 @@
   }
 
   function simulateOCR(id){
-    const r = state.receipts.find(x=>x.id===id); if(!r) return;
-    const cat = RECEIPT_CATEGORIES[Math.floor(Math.random()*RECEIPT_CATEGORIES.length)];
-    const vendor = VENDORS[cat][Math.floor(Math.random()*VENDORS[cat].length)];
-    const [lo,hi] = AMOUNT_RANGES[cat];
-    const amount = Math.round((lo + Math.random()*(hi-lo))/100)*100;
-    const dates = eachDateInRange(state.distant.depart, state.distant.arrive);
+    const isOverseas = state.tripType === 'overseas';
+    const r = activeReceipts().find(x=>x.id===id); if(!r) return;
+    const categories = activeReceiptCategories();
+    const cat = categories[Math.floor(Math.random()*categories.length)];
+    let vendor, amount, currency;
+    if(isOverseas){
+      vendor = cat==='숙박비' ? '현지 ○○호텔' : '현지 기타 사용처';
+      const range = cat==='숙박비' ? [90,260] : [10,120];
+      amount = Math.round(range[0] + Math.random()*(range[1]-range[0]));
+      currency = 'USD';
+    } else {
+      vendor = VENDORS[cat][Math.floor(Math.random()*VENDORS[cat].length)];
+      const [lo,hi] = AMOUNT_RANGES[cat];
+      amount = Math.round((lo + Math.random()*(hi-lo))/100)*100;
+      currency = 'KRW';
+    }
+    const dates = eachDateInRange(isOverseas ? state.overseas.depart : state.distant.depart, isOverseas ? state.overseas.arrive : state.distant.arrive);
     const date = dates.length ? dates[Math.floor(Math.random()*dates.length)] : toDateOnly(new Date());
     r.ocrCategory = cat; r.ocrVendor = vendor; r.ocrDate = date; r.ocrAmount = amount;
     r.category = cat; r.vendor = vendor; r.date = date; r.confirmedAmount = amount;
-    r.seatClass = (cat==='철도운임' || cat==='항공운임') ? (Math.random()<0.85 ? '일반석' : '우등석/비즈니스') : '';
+    if(isOverseas) r.currency = currency;
+    r.seatClass = (!isOverseas && (cat==='철도운임' || cat==='항공운임')) ? (Math.random()<0.85 ? '일반석' : '우등석/비즈니스') : '';
     renderReceiptsList();
     recompute();
   }
@@ -704,6 +1231,14 @@
       addBreakdownRow(breakdown, '식비', result.mealTotal);
       addBreakdownRow(breakdown, '숙박비(인정액)', result.lodgingTotal);
       addBreakdownRow(breakdown, '운임(인정액)', result.fareTotal);
+    } else if(state.tripType === 'overseas'){
+      total = result.total || 0;
+      addBreakdownRow(breakdown, '항공운임', result.airfareKRW||0);
+      addBreakdownRow(breakdown, '숙박비(인정액)', result.lodgingRecognizedTotal||0);
+      addBreakdownRow(breakdown, '식비', result.mealTotalKRW||0);
+      addBreakdownRow(breakdown, '일비', result.dailyAllowanceKRW||0);
+      addBreakdownRow(breakdown, '기타 운임', result.otherFareKRW||0);
+      addBreakdownRow(breakdown, '기타 인정경비', result.otherExpenseKRW||0);
     }
     document.getElementById('summaryTotal').textContent = won(total);
     const dangerCount = warnings.filter(w=>w.level==='danger').length;
@@ -726,6 +1261,15 @@
       if(dupIds.size > 0){
         warnings.push({level:'danger', text:`중복 의심 영수증 ${dupIds.size}건 — 동일 날짜·항목·금액의 영수증을 확인하세요.`});
       }
+    } else if(state.tripType === 'overseas'){
+      result = calcOverseas();
+      warnings = result.warnings.slice();
+      renderOverseasComputed(result);
+      updateReceiptRecognizedDisplays();
+      const dupIds = findDuplicateReceipts();
+      if(dupIds.size > 0){
+        warnings.push({level:'danger', text:`중복 의심 영수증 ${dupIds.size}건 — 동일 날짜·항목·금액의 영수증을 확인하세요.`});
+      }
     } else {
       result = {total:0};
     }
@@ -736,10 +1280,14 @@
   function renderAll(){
     document.getElementById('localSection').hidden = state.tripType !== 'local';
     document.getElementById('distantSection').hidden = state.tripType !== 'distant';
-    document.getElementById('receiptsSection').hidden = state.tripType !== 'distant';
+    document.getElementById('overseasSection').hidden = state.tripType !== 'overseas';
+    document.getElementById('receiptsSection').hidden = !(state.tripType === 'distant' || state.tripType === 'overseas');
     document.getElementById('receiptsSkipNote').hidden = state.tripType !== 'local';
     renderLocalRows();
     renderMealDaysBody();
+    renderOverseasStaticOptions();
+    renderFxTable();
+    renderOverseasMealDaysBody();
     renderReceiptsList();
     recompute();
   }
@@ -805,18 +1353,23 @@
   });
 
   document.getElementById('addReceiptBtn').addEventListener('click', ()=>{
-    state.receipts.push({id:receiptSeq++, fileName:'', thumb:null, category:'기타', vendor:'', date:'', ocrCategory:'', ocrVendor:'', ocrDate:'', ocrAmount:0, confirmedAmount:0, seatClass:''});
+    const isOverseas = state.tripType === 'overseas';
+    activeReceipts().push({id:receiptSeq++, fileName:'', thumb:null, category: isOverseas ? '숙박비' : '기타', vendor:'', date:'', ocrCategory:'', ocrVendor:'', ocrDate:'', ocrAmount:0, confirmedAmount:0, currency: isOverseas ? 'USD' : 'KRW', seatClass:'', excessReason:'', excessRequested:false, excessApproval:'none'});
     renderReceiptsList(); recompute();
   });
   document.getElementById('receiptsList').addEventListener('click', e=>{
     const del = e.target.closest('button[data-action="delete-receipt"]');
-    if(del){ state.receipts = state.receipts.filter(r=>r.id !== Number(del.dataset.id)); renderReceiptsList(); recompute(); return; }
+    if(del){
+      if(state.tripType === 'overseas') state.overseasReceipts = state.overseasReceipts.filter(r=>r.id !== Number(del.dataset.id));
+      else state.receipts = state.receipts.filter(r=>r.id !== Number(del.dataset.id));
+      renderReceiptsList(); recompute(); return;
+    }
     const ocr = e.target.closest('button[data-action="simulate-ocr"]');
     if(ocr){ simulateOCR(Number(ocr.dataset.id)); }
   });
   document.getElementById('receiptsList').addEventListener('change', e=>{
     const t = e.target, id = Number(t.dataset.id); if(!id) return;
-    const r = state.receipts.find(x=>x.id===id); if(!r) return;
+    const r = activeReceipts().find(x=>x.id===id); if(!r) return;
     if(t.dataset.field==='file'){
       const file = t.files[0]; if(!file) return;
       r.fileName = file.name;
@@ -828,14 +1381,267 @@
     if(t.dataset.field==='category'){ r.category = t.value; renderReceiptsList(); recompute(); return; }
     if(t.dataset.field==='date') r.date = t.value;
     else if(t.dataset.field==='seatClass') r.seatClass = t.value;
+    else if(t.dataset.field==='currency') r.currency = t.value;
+    else if(t.dataset.field==='excessRequested') r.excessRequested = t.checked;
+    else if(t.dataset.field==='excessApproval') r.excessApproval = t.value;
     recompute();
   });
   document.getElementById('receiptsList').addEventListener('input', e=>{
     const t = e.target, id = Number(t.dataset.id); if(!id) return;
-    const r = state.receipts.find(x=>x.id===id); if(!r) return;
+    const r = activeReceipts().find(x=>x.id===id); if(!r) return;
     if(t.dataset.field==='vendor') r.vendor = t.value;
     else if(t.dataset.field==='amount') r.confirmedAmount = Number(t.value)||0;
+    else if(t.dataset.field==='excessReason') r.excessReason = t.value;
     recompute();
+  });
+
+  // ---- 국외출장 wiring ----
+  document.getElementById('ov-purposeDetail').addEventListener('input', e=>{ state.overseas.purposeDetail = e.target.value; });
+  ['depart','arrive'].forEach(f=>{
+    document.getElementById('ov-'+f).addEventListener('change', e=>{
+      state.overseas[f] = e.target.value; renderOverseasMealDaysBody(); recompute();
+    });
+  });
+  document.getElementById('ov-transport').addEventListener('change', e=>{ state.overseas.transport = e.target.value; recompute(); });
+  document.getElementById('ov-country').addEventListener('change', e=>{ state.overseas.country = e.target.value; recompute(); });
+  document.getElementById('ov-city').addEventListener('input', e=>{ state.overseas.city = e.target.value; recompute(); });
+  document.getElementById('ov-position').addEventListener('change', e=>{ state.overseas.positionId = Number(e.target.value); recompute(); });
+  document.getElementById('ov-gradeOverride').addEventListener('change', e=>{ state.overseas.gradeOverride = e.target.value; recompute(); });
+  document.getElementById('ov-airfareAmount').addEventListener('input', e=>{ state.overseas.airfareAmount = Number(e.target.value)||0; recompute(); });
+  document.getElementById('ov-airfareCurrency').addEventListener('change', e=>{ state.overseas.airfareCurrency = e.target.value; recompute(); });
+  document.getElementById('ov-airfareTrip').addEventListener('change', e=>{ state.overseas.airfareTrip = e.target.value; recompute(); });
+  document.getElementById('ov-airfareSeat').addEventListener('change', e=>{ state.overseas.airfareSeat = e.target.value; recompute(); });
+  document.getElementById('ov-otherFare').addEventListener('input', e=>{ state.overseas.otherFare = Number(e.target.value)||0; recompute(); });
+  document.getElementById('ov-otherFareNote').addEventListener('input', e=>{ state.overseas.otherFareNote = e.target.value; });
+
+  document.getElementById('ov-mealDaysBody').addEventListener('change', e=>{
+    const t = e.target, date = t.dataset.ovDate, meal = t.dataset.ovMeal; if(!date || !meal) return;
+    if(!state.overseas.mealProvided[date]) state.overseas.mealProvided[date] = {breakfast:false,lunch:false,dinner:false};
+    state.overseas.mealProvided[date][meal] = t.checked;
+    recompute();
+  });
+
+  document.getElementById('addFxRowBtn').addEventListener('click', ()=>{
+    state.overseas.fxRates.push({id:fxSeq++, currency:'USD', rate:0, basisDate:'', source:''});
+    renderFxTable(); recompute();
+  });
+  document.getElementById('fxTableBody').addEventListener('click', e=>{
+    const btn = e.target.closest('button[data-action="delete-fx"]'); if(!btn) return;
+    state.overseas.fxRates = state.overseas.fxRates.filter(r=>r.id !== Number(btn.dataset.fxId));
+    renderFxTable(); recompute();
+  });
+  document.getElementById('fxTableBody').addEventListener('input', e=>{
+    const t = e.target, id = Number(t.dataset.fxId); if(!id) return;
+    const row = state.overseas.fxRates.find(r=>r.id===id); if(!row) return;
+    if(t.dataset.field==='rate') row.rate = Number(t.value)||0;
+    else if(t.dataset.field==='basisDate') row.basisDate = t.value;
+    else if(t.dataset.field==='source') row.source = t.value;
+    recompute();
+  });
+  document.getElementById('fxTableBody').addEventListener('change', e=>{
+    const t = e.target, id = Number(t.dataset.fxId); if(!id) return;
+    const row = state.overseas.fxRates.find(r=>r.id===id); if(!row) return;
+    if(t.dataset.field==='currency') row.currency = t.value;
+    recompute();
+  });
+
+  // ---------- ADMIN PANEL ----------
+  function statusCellHtml(kind, id, status){
+    return `<span class="status-pill ${status}"></span><select class="status-select" data-status-kind="${kind}" data-status-id="${id}">
+      <option value="law" ${status==='law'?'selected':''}>법령 기준</option>
+      <option value="org" ${status==='org'?'selected':''}>재단 자체 기준</option>
+      <option value="undetermined" ${status==='undetermined'?'selected':''}>미확정</option>
+    </select>`;
+  }
+  function findStatusOwner(kind, id){
+    if(kind==='grade') return overseasConfig.travelerGrades.find(g=>g.id===id);
+    if(kind==='country') return overseasConfig.countries.find(c=>c.country===id);
+    if(kind==='city') return overseasConfig.cityOverrides.find(c=>String(c.id)===id);
+    if(kind==='position') return overseasConfig.positionMapping.find(p=>String(p.id)===id);
+    if(kind==='policy') return overseasConfig.policies[id];
+    return null;
+  }
+  function refreshStatusPill(kind, id){
+    const sel = document.querySelector(`select[data-status-kind="${kind}"][data-status-id="${id}"]`);
+    const owner = findStatusOwner(kind, id);
+    if(!sel || !owner) return;
+    sel.value = owner.status;
+    const pill = sel.previousElementSibling;
+    if(pill) pill.className = 'status-pill ' + owner.status;
+  }
+
+  function renderAdminGradeTable(){
+    const body = document.getElementById('adminGradeTableBody');
+    body.innerHTML = overseasConfig.travelerGrades.map(g=>{
+      const regionCells = REGION_GRADES.map(rg=>`
+        <td><div class="grade-cell">
+          <label class="field-label" style="margin:0;">숙박 <input type="number" data-grade-id="${g.id}" data-region="${rg}" data-field="lodgingCapUSD" value="${g.rates[rg].lodgingCapUSD}"></label>
+          <label class="field-label" style="margin:0;">식비 <input type="number" data-grade-id="${g.id}" data-region="${rg}" data-field="mealUSD" value="${g.rates[rg].mealUSD}"></label>
+        </div></td>`).join('');
+      return `<tr>
+        <td><input type="text" data-grade-id="${g.id}" data-field="label" value="${g.label}" style="min-width:170px;"></td>
+        <td><input type="number" data-grade-id="${g.id}" data-field="dailyAllowanceUSD" value="${g.dailyAllowanceUSD}" style="width:65px; min-width:65px;"></td>
+        <td><select data-grade-id="${g.id}" data-field="airfareClass">
+          <option value="1등석" ${g.airfareClass==='1등석'?'selected':''}>1등석</option>
+          <option value="2등석" ${g.airfareClass==='2등석'?'selected':''}>2등석</option>
+        </select></td>
+        ${regionCells}
+        <td><div class="status-cell">${statusCellHtml('grade', g.id, g.status)}</div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderAdminPositionTable(){
+    const body = document.getElementById('adminPositionTableBody');
+    body.innerHTML = overseasConfig.positionMapping.map(p=>`
+      <tr>
+        <td><input type="text" data-position-id="${p.id}" data-field="position" value="${p.position}" style="min-width:160px;"></td>
+        <td><select data-position-id="${p.id}" data-field="gradeId">
+          <option value="">미지정</option>
+          ${overseasConfig.travelerGrades.map(g=>`<option value="${g.id}" ${p.gradeId===g.id?'selected':''}>${g.label}</option>`).join('')}
+        </select></td>
+        <td><div class="status-cell">${statusCellHtml('position', p.id, p.status)}</div></td>
+        <td><button class="danger-ghost" data-action="delete-position" data-position-id="${p.id}">삭제</button></td>
+      </tr>`).join('');
+  }
+
+  function renderAdminCountryTable(){
+    const filter = (document.getElementById('adminCountryFilter').value||'').trim();
+    const body = document.getElementById('adminCountryTableBody');
+    const rows = overseasConfig.countries.filter(c=>!filter || c.country.includes(filter));
+    body.innerHTML = rows.map(c=>`
+      <tr>
+        <td>${c.country}</td>
+        <td><select data-country-id="${c.country}" data-field="grade">
+          ${REGION_GRADES.map(g=>`<option value="${g}" ${c.grade===g?'selected':''}>${g}등급</option>`).join('')}
+        </select></td>
+        <td><div class="status-cell">${statusCellHtml('country', c.country, c.status)}</div></td>
+      </tr>`).join('');
+  }
+
+  function renderAdminCityTable(){
+    const body = document.getElementById('adminCityTableBody');
+    body.innerHTML = overseasConfig.cityOverrides.map(c=>`
+      <tr>
+        <td><input type="text" data-city-id="${c.id}" data-field="country" value="${c.country}"></td>
+        <td><input type="text" data-city-id="${c.id}" data-field="city" value="${c.city}"></td>
+        <td><select data-city-id="${c.id}" data-field="grade">
+          ${REGION_GRADES.map(g=>`<option value="${g}" ${c.grade===g?'selected':''}>${g}등급</option>`).join('')}
+        </select></td>
+        <td><div class="status-cell">${statusCellHtml('city', c.id, c.status)}</div></td>
+        <td><button class="danger-ghost" data-action="delete-city" data-city-id="${c.id}">삭제</button></td>
+      </tr>`).join('');
+  }
+
+  function renderAdminPolicyTable(){
+    const body = document.getElementById('adminPolicyTableBody');
+    const keys = Object.keys(overseasConfig.policies);
+    body.innerHTML = keys.map(k=>{
+      const p = overseasConfig.policies[k];
+      const valueField = k==='mealDeductionMethod'
+        ? `<select data-policy-id="${k}" data-field="value">
+            <option value="none" ${p.value==='none'?'selected':''}>차감 없음(전액 지급)</option>
+            <option value="thirds" ${p.value==='thirds'?'selected':''}>1일 식비의 1/3씩 끼니별 차감</option>
+          </select>`
+        : `<input type="text" data-policy-id="${k}" data-field="value" value="${p.value||''}" style="min-width:260px;">`;
+      return `<tr>
+        <td>${p.label}</td>
+        <td>${valueField}</td>
+        <td><div class="status-cell">${statusCellHtml('policy', k, p.status)}</div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderAdminPanel(){
+    renderAdminGradeTable();
+    renderAdminPositionTable();
+    renderAdminCountryTable();
+    renderAdminCityTable();
+    renderAdminPolicyTable();
+  }
+
+  document.getElementById('adminGradeTableBody').addEventListener('input', e=>{
+    const t = e.target, id = t.dataset.gradeId; if(!id) return;
+    const g = overseasConfig.travelerGrades.find(x=>x.id===id); if(!g) return;
+    if(t.dataset.field==='label'){ g.label = t.value; renderOverseasStaticOptions(); return; }
+    if(t.dataset.field==='dailyAllowanceUSD') g.dailyAllowanceUSD = Number(t.value)||0;
+    else if(t.dataset.field==='lodgingCapUSD') g.rates[t.dataset.region].lodgingCapUSD = Number(t.value)||0;
+    else if(t.dataset.field==='mealUSD') g.rates[t.dataset.region].mealUSD = Number(t.value)||0;
+    g.status = 'org'; refreshStatusPill('grade', g.id);
+    recompute();
+  });
+  document.getElementById('adminGradeTableBody').addEventListener('change', e=>{
+    const t = e.target, id = t.dataset.gradeId; if(!id) return;
+    const g = overseasConfig.travelerGrades.find(x=>x.id===id); if(!g) return;
+    if(t.dataset.field==='airfareClass'){ g.airfareClass = t.value; g.status='org'; refreshStatusPill('grade', g.id); recompute(); }
+  });
+
+  document.getElementById('addPositionRowBtn').addEventListener('click', ()=>{
+    overseasConfig.positionMapping.push({id:overseasConfig.positionSeq++, position:'새 직급', gradeId:'', status:'undetermined'});
+    renderAdminPositionTable(); renderOverseasStaticOptions(); recompute();
+  });
+  document.getElementById('adminPositionTableBody').addEventListener('input', e=>{
+    const t = e.target, id = Number(t.dataset.positionId); if(!id) return;
+    const p = overseasConfig.positionMapping.find(x=>x.id===id); if(!p) return;
+    if(t.dataset.field==='position'){ p.position = t.value; renderOverseasStaticOptions(); }
+  });
+  document.getElementById('adminPositionTableBody').addEventListener('change', e=>{
+    const t = e.target, id = Number(t.dataset.positionId); if(!id) return;
+    const p = overseasConfig.positionMapping.find(x=>x.id===id); if(!p) return;
+    if(t.dataset.field==='gradeId'){ p.gradeId = t.value; p.status = t.value ? 'org' : 'undetermined'; refreshStatusPill('position', p.id); recompute(); }
+  });
+  document.getElementById('adminPositionTableBody').addEventListener('click', e=>{
+    const btn = e.target.closest('button[data-action="delete-position"]'); if(!btn) return;
+    overseasConfig.positionMapping = overseasConfig.positionMapping.filter(p=>p.id !== Number(btn.dataset.positionId));
+    renderAdminPositionTable(); renderOverseasStaticOptions(); recompute();
+  });
+
+  document.getElementById('adminCountryFilter').addEventListener('input', renderAdminCountryTable);
+  document.getElementById('adminCountryTableBody').addEventListener('change', e=>{
+    const t = e.target, id = t.dataset.countryId; if(!id) return;
+    const c = overseasConfig.countries.find(x=>x.country===id); if(!c) return;
+    if(t.dataset.field==='grade'){ c.grade = t.value; c.status='org'; refreshStatusPill('country', c.country); recompute(); }
+  });
+
+  document.getElementById('addCityRowBtn').addEventListener('click', ()=>{
+    overseasConfig.cityOverrides.push({id:overseasConfig.citySeq++, country:'', city:'', grade:'가', status:'org'});
+    renderAdminCityTable(); recompute();
+  });
+  document.getElementById('adminCityTableBody').addEventListener('input', e=>{
+    const t = e.target, id = Number(t.dataset.cityId); if(!id) return;
+    const c = overseasConfig.cityOverrides.find(x=>x.id===id); if(!c) return;
+    if(t.dataset.field==='country') c.country = t.value;
+    else if(t.dataset.field==='city') c.city = t.value;
+    c.status = 'org'; refreshStatusPill('city', c.id); recompute();
+  });
+  document.getElementById('adminCityTableBody').addEventListener('change', e=>{
+    const t = e.target, id = Number(t.dataset.cityId); if(!id) return;
+    const c = overseasConfig.cityOverrides.find(x=>x.id===id); if(!c) return;
+    if(t.dataset.field==='grade'){ c.grade = t.value; c.status='org'; refreshStatusPill('city', c.id); recompute(); }
+  });
+  document.getElementById('adminCityTableBody').addEventListener('click', e=>{
+    const btn = e.target.closest('button[data-action="delete-city"]'); if(!btn) return;
+    overseasConfig.cityOverrides = overseasConfig.cityOverrides.filter(c=>c.id !== Number(btn.dataset.cityId));
+    renderAdminCityTable(); recompute();
+  });
+
+  document.getElementById('adminPolicyTableBody').addEventListener('input', e=>{
+    const t = e.target, k = t.dataset.policyId; if(!k) return;
+    const p = overseasConfig.policies[k]; if(!p) return;
+    if(t.dataset.field==='value'){ p.value = t.value; if(p.status==='undetermined') { p.status='org'; refreshStatusPill('policy', k); } recompute(); }
+  });
+  document.getElementById('adminPolicyTableBody').addEventListener('change', e=>{
+    const t = e.target, k = t.dataset.policyId; if(!k) return;
+    const p = overseasConfig.policies[k]; if(!p) return;
+    if(t.dataset.field==='value'){ p.value = t.value; if(p.status==='undetermined'){ p.status='org'; refreshStatusPill('policy', k); } recompute(); }
+  });
+
+  document.getElementById('adminPanel').addEventListener('change', e=>{
+    const t = e.target;
+    if(t.classList.contains('status-select')){
+      const owner = findStatusOwner(t.dataset.statusKind, t.dataset.statusId);
+      if(owner){ owner.status = t.value; recompute(); }
+    }
   });
 
   function updateFuelEffLabel(){
@@ -850,6 +1656,15 @@
   document.getElementById('distant-totalDistance').value = state.distant.totalDistance;
   updateFuelEffLabel();
   toggleDistantTransportFields();
+
+  document.getElementById('ov-purposeDetail').value = state.overseas.purposeDetail;
+  document.getElementById('ov-depart').value = state.overseas.depart;
+  document.getElementById('ov-arrive').value = state.overseas.arrive;
+  document.getElementById('ov-city').value = state.overseas.city;
+  document.getElementById('ov-airfareAmount').value = state.overseas.airfareAmount;
+  document.getElementById('ov-airfareSeat').value = state.overseas.airfareSeat;
+
+  renderAdminPanel();
   renderAll();
 })();
 </script>
