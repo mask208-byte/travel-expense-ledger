@@ -1,72 +1,96 @@
 <title>여비 정산대장</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
   :root{
-    --paper:#F2F4F6;
+    --paper:#F6F1E7;
     --surface:#FFFFFF;
-    --surface-2:#EAEDF1;
-    --ink:#1B2430;
-    --ink-muted:#5B6472;
-    --line:#D8DCE1;
-    --line-strong:#B7BEC7;
-    --accent:#24406B;
-    --accent-soft:#E4EAF2;
-    --seal:#A23B2B;
-    --seal-soft:#F5E4E0;
+    --surface-2:#EFE7D7;
+    --ink:#211C15;
+    --ink-muted:#7A7161;
+    --line:#E4D9C3;
+    --line-strong:#CDBF9F;
+    --primary:#E8632A;
+    --primary-soft:#FBE1D2;
+    --secondary:#0E7C86;
+    --secondary-soft:#DCEFEF;
+    --highlight:#E8AC3D;
+    --highlight-soft:#FBEACB;
     --ok:#2F7D4F;
     --ok-soft:#E3F0E8;
-    --warn:#9C6B0B;
-    --warn-soft:#F6EBD6;
-    --focus:#2C4870;
+    --warn:#C98A1D;
+    --warn-soft:#F8EAD1;
+    --danger:#B23A2E;
+    --danger-soft:#F5DFDA;
+    --focus:#0E7C86;
+    --font-hero:'Black Han Sans', 'Malgun Gothic', sans-serif;
     --font-display:'Gowun Batang', 'Malgun Gothic', serif;
     --font-body:'Gowun Dodum', 'Malgun Gothic', sans-serif;
     --font-mono:'IBM Plex Mono', 'Consolas', monospace;
+    --radius-card:20px;
+    --radius-field:10px;
+    --radius-pill:999px;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --paper:#14181F; --surface:#1B212B; --surface-2:#212836;
-      --ink:#E7EAEE; --ink-muted:#98A2B3; --line:#2E3644; --line-strong:#3C4657;
-      --accent:#8FACD6; --accent-soft:#223449; --seal:#D97A69; --seal-soft:#3A2420;
-      --ok:#6FBE8D; --ok-soft:#1E3327; --warn:#D9A94D; --warn-soft:#3A2E14; --focus:#8FACD6;
+      --paper:#1C1712; --surface:#26201A; --surface-2:#2F2820;
+      --ink:#F3ECE0; --ink-muted:#B8AC98; --line:#3A3227; --line-strong:#4C4234;
+      --primary:#FF8354; --primary-soft:#4A2A1C; --secondary:#3FB8A8; --secondary-soft:#1B3936;
+      --highlight:#F0C060; --highlight-soft:#443512;
+      --ok:#6FBE8D; --ok-soft:#1E3327; --warn:#E0A94D; --warn-soft:#3A2E14; --danger:#E27468; --danger-soft:#3D211D;
+      --focus:#3FB8A8;
     }
   }
   :root[data-theme="dark"]{
-    --paper:#14181F; --surface:#1B212B; --surface-2:#212836;
-    --ink:#E7EAEE; --ink-muted:#98A2B3; --line:#2E3644; --line-strong:#3C4657;
-    --accent:#8FACD6; --accent-soft:#223449; --seal:#D97A69; --seal-soft:#3A2420;
-    --ok:#6FBE8D; --ok-soft:#1E3327; --warn:#D9A94D; --warn-soft:#3A2E14; --focus:#8FACD6;
+    --paper:#1C1712; --surface:#26201A; --surface-2:#2F2820;
+    --ink:#F3ECE0; --ink-muted:#B8AC98; --line:#3A3227; --line-strong:#4C4234;
+    --primary:#FF8354; --primary-soft:#4A2A1C; --secondary:#3FB8A8; --secondary-soft:#1B3936;
+    --highlight:#F0C060; --highlight-soft:#443512;
+    --ok:#6FBE8D; --ok-soft:#1E3327; --warn:#E0A94D; --warn-soft:#3A2E14; --danger:#E27468; --danger-soft:#3D211D;
+    --focus:#3FB8A8;
   }
 
   *{box-sizing:border-box;}
   body{background:var(--paper); color:var(--ink); font-family:var(--font-body); line-height:1.55;}
   .wrap{max-width:1180px; margin:0 auto; padding:2.4rem 1.5rem 5rem;}
+  .icon{width:1em; height:1em; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; flex:none; vertical-align:-0.15em;}
 
-  .masthead{display:flex; flex-direction:column; gap:.5rem; margin-bottom:1.4rem;}
-  .masthead h1{font-family:var(--font-display); font-weight:700; font-size:1.9rem; margin:0; text-wrap:balance; color:var(--ink);}
-  .masthead p{margin:0; color:var(--ink-muted); font-size:.92rem; max-width:62ch;}
-  .badge-proto{display:inline-flex; align-self:flex-start; align-items:center; gap:.4rem; padding:.3rem .7rem; border:1px solid var(--line-strong); font-size:.75rem; letter-spacing:.03em; color:var(--ink-muted); font-family:var(--font-mono);}
+  .masthead{display:flex; flex-direction:column; gap:.6rem; margin-bottom:1.6rem;}
+  .masthead h1{font-family:var(--font-hero); font-weight:400; font-size:2.5rem; letter-spacing:.01em; margin:0; text-wrap:balance; color:var(--ink);}
+  .masthead p{margin:0; color:var(--ink-muted); font-size:.94rem; max-width:64ch;}
+  .badge-proto{display:inline-flex; align-self:flex-start; align-items:center; gap:.45rem; padding:.35rem .8rem; border-radius:var(--radius-pill); background:var(--secondary-soft); color:var(--secondary); font-size:.74rem; letter-spacing:.04em; font-family:var(--font-body); font-weight:600;}
 
-  .flow-strip{display:flex; flex-wrap:wrap; gap:.35rem; align-items:center; margin:1.2rem 0 2rem; padding:.9rem 1rem; background:var(--surface); border:1px solid var(--line);}
-  .flow-strip .step{font-size:.76rem; color:var(--ink-muted); white-space:nowrap;}
-  .flow-strip .sep{color:var(--line-strong); font-size:.76rem;}
+  .stat-tiles{display:grid; grid-template-columns:repeat(4, 1fr); gap:1rem; margin-bottom:1.8rem;}
+  @media (max-width:820px){ .stat-tiles{grid-template-columns:repeat(2, 1fr);} }
+  .stat-tile{background:var(--surface); border-radius:var(--radius-card); padding:1.1rem 1.2rem; border-top:5px solid var(--tile-color, var(--primary)); display:flex; flex-direction:column; gap:.3rem;}
+  .stat-tile .stat-icon{color:var(--tile-color, var(--primary));}
+  .stat-tile .stat-value{font-family:var(--font-hero); font-size:1.7rem; font-variant-numeric:tabular-nums; line-height:1.1; color:var(--ink);}
+  .stat-tile .stat-label{font-size:.76rem; color:var(--ink-muted); letter-spacing:.02em;}
+
+  .route-strip{position:relative; display:flex; justify-content:space-between; gap:.3rem; margin:0 0 2.2rem; padding:1.4rem .5rem .5rem;}
+  .route-strip::before{content:''; position:absolute; left:5%; right:5%; top:1.55rem; height:0; border-top:2.5px dashed var(--line-strong); z-index:0;}
+  .route-node{position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:.5rem; flex:1; min-width:0;}
+  .route-pin{width:2.1rem; height:2.1rem; border-radius:50%; background:var(--surface); border:2.5px solid var(--secondary); color:var(--secondary); display:flex; align-items:center; justify-content:center; font-family:var(--font-hero); font-size:.85rem;}
+  .route-node:nth-child(odd) .route-pin{border-color:var(--primary); color:var(--primary);}
+  .route-node .route-label{font-size:.68rem; color:var(--ink-muted); text-align:center; white-space:nowrap; max-width:90px; overflow:hidden; text-overflow:ellipsis;}
+  @media (max-width:820px){ .route-node .route-label{display:none;} }
 
   .grid{display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:1.8rem; align-items:start;}
   @media (max-width:960px){ .grid{grid-template-columns:1fr;} .summary{position:static;} }
 
   .content{display:flex; flex-direction:column; gap:1.6rem; min-width:0;}
 
-  .card{background:var(--surface); border:1px solid var(--line); padding:1.5rem 1.6rem;}
-  .section-title{display:flex; align-items:baseline; gap:.65rem; font-family:var(--font-display); font-size:1.22rem; padding-bottom:.65rem; border-bottom:1px solid var(--line-strong); margin:0 0 1.15rem;}
-  .section-num{font-style:italic; font-size:1.55rem; color:var(--accent); font-family:var(--font-display);}
+  .card{background:var(--surface); border-radius:var(--radius-card); padding:1.6rem 1.7rem; position:relative;}
+  .section-title{display:flex; align-items:center; gap:.75rem; font-family:var(--font-display); font-size:1.22rem; padding-bottom:.7rem; border-bottom:1px solid var(--line); margin:0 0 1.15rem;}
+  .section-num{flex:none; display:inline-flex; align-items:center; justify-content:center; width:2rem; height:2rem; border-radius:50%; background:var(--primary); color:#fff; font-family:var(--font-hero); font-size:.95rem; font-style:normal;}
   .section-sub{font-size:.82rem; color:var(--ink-muted); font-weight:400; margin-left:.15rem;}
 
   .note{font-size:.78rem; color:var(--ink-muted); margin:.5rem 0 0; line-height:1.6;}
 
   .field-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:1rem 1.2rem;}
   .field{display:flex; flex-direction:column; gap:.4rem;}
-  .field-label{font-size:.76rem; letter-spacing:.02em; color:var(--ink-muted);}
+  .field-label{font-size:.76rem; letter-spacing:.02em; color:var(--ink-muted); display:flex; align-items:center; gap:.35rem;}
   .field input[type="text"], .field input[type="number"], .field input[type="date"], .field input[type="datetime-local"], .field select{
-    font-family:var(--font-body); font-size:.92rem; padding:.55rem .65rem; border:1px solid var(--line); background:var(--surface); color:var(--ink);
+    font-family:var(--font-body); font-size:.92rem; padding:.55rem .65rem; border-radius:var(--radius-field); border:1px solid var(--line); background:var(--paper); color:var(--ink);
   }
   .field input:focus-visible, .field select:focus-visible, button:focus-visible, input[type="checkbox"]:focus-visible{
     outline:2px solid var(--focus); outline-offset:2px;
@@ -79,48 +103,50 @@
   table.ledger{width:100%; border-collapse:collapse; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:.83rem; min-width:640px;}
   table.ledger th{text-align:left; font-family:var(--font-body); font-size:.72rem; letter-spacing:.03em; color:var(--ink-muted); border-bottom:1px solid var(--line-strong); padding:.55rem .6rem; white-space:nowrap;}
   table.ledger td{border-bottom:1px solid var(--line); padding:.5rem .6rem; vertical-align:middle;}
-  table.ledger input[type="number"], table.ledger input[type="datetime-local"]{font-family:var(--font-mono); font-size:.82rem; padding:.35rem .4rem; border:1px solid var(--line); background:var(--surface); color:var(--ink); width:100%; min-width:150px;}
+  table.ledger input[type="number"], table.ledger input[type="datetime-local"]{font-family:var(--font-mono); font-size:.82rem; padding:.35rem .4rem; border-radius:6px; border:1px solid var(--line); background:var(--paper); color:var(--ink); width:100%; min-width:150px;}
   table.ledger input[type="checkbox"]{width:16px; height:16px;}
 
-  button{font-family:var(--font-body); cursor:pointer; border:1px solid var(--line-strong); background:var(--surface); color:var(--ink); padding:.5rem .85rem; font-size:.85rem; transition:background-color .15s, color .15s;}
+  button{font-family:var(--font-body); cursor:pointer; border-radius:var(--radius-pill); border:1px solid var(--line-strong); background:var(--surface); color:var(--ink); padding:.55rem 1.05rem; font-size:.85rem; display:inline-flex; align-items:center; gap:.4rem; transition:background-color .15s, color .15s, transform .1s;}
   button:hover{background:var(--surface-2);}
-  button.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  button:active{transform:scale(.97);}
+  button.primary{background:var(--primary); border-color:var(--primary); color:#fff; font-weight:600;}
   button.primary:hover{opacity:.9;}
-  button.ghost{border-color:transparent; color:var(--ink-muted); padding:.3rem .5rem;}
-  button.danger-ghost{border-color:transparent; color:var(--seal); padding:.3rem .5rem;}
+  button.ghost{border-color:transparent; background:transparent; color:var(--ink-muted); padding:.3rem .6rem;}
+  button.danger-ghost{border-color:transparent; background:transparent; color:var(--danger); padding:.3rem .6rem;}
   @media (prefers-reduced-motion: reduce){ button{transition:none;} }
 
   .row-actions{display:flex; justify-content:flex-end; margin-top:.9rem;}
 
-  .chip{display:inline-flex; align-items:center; gap:.5rem; padding:.4rem .75rem; font-size:.8rem; border:1px solid transparent;}
-  .chip::before{content:''; width:6px; height:6px; border-radius:50%; background:currentColor; flex:none;}
+  .chip{display:inline-flex; align-items:center; gap:.5rem; padding:.45rem .85rem; border-radius:var(--radius-pill); font-size:.8rem; font-weight:600; border:1px solid transparent;}
+  .chip::before{content:''; width:7px; height:7px; border-radius:50%; background:currentColor; flex:none;}
   .chip.ok{background:var(--ok-soft); color:var(--ok);}
   .chip.warn{background:var(--warn-soft); color:var(--warn);}
-  .chip.danger{background:var(--seal-soft); color:var(--seal);}
-  .chip-list{display:flex; flex-direction:column; gap:.5rem;}
+  .chip.danger{background:var(--danger-soft); color:var(--danger);}
+  .chip-list{display:flex; flex-wrap:wrap; gap:.5rem;}
 
-  .elig-tag{font-family:var(--font-body); font-size:.78rem; padding:.15rem .5rem; display:inline-block;}
+  .elig-tag{font-family:var(--font-body); font-weight:600; font-size:.78rem; padding:.2rem .65rem; border-radius:var(--radius-pill); display:inline-block;}
   .elig-tag.ok{background:var(--ok-soft); color:var(--ok);}
-  .elig-tag.no{background:var(--seal-soft); color:var(--seal);}
+  .elig-tag.no{background:var(--danger-soft); color:var(--danger);}
 
-  .receipt-card{border:1px solid var(--line); padding:1.1rem 1.2rem; display:flex; flex-direction:column; gap:.8rem;}
-  .receipt-card.duplicate{border-color:var(--seal); box-shadow:0 0 0 1px var(--seal);}
+  .receipt-card{border:1px solid var(--line); border-radius:var(--radius-card); padding:1.2rem 1.3rem; display:flex; flex-direction:column; gap:.8rem;}
+  .receipt-card.duplicate{border-color:var(--danger); box-shadow:0 0 0 1px var(--danger);}
   .receipt-head{display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;}
   .receipt-head .title{font-size:.88rem; color:var(--ink); font-weight:600;}
-  .receipt-thumb{width:52px; height:52px; object-fit:cover; border:1px solid var(--line); flex:none;}
-  .ocr-readout{font-family:var(--font-mono); font-size:.8rem; color:var(--ink-muted); background:var(--surface-2); padding:.6rem .7rem; font-variant-numeric:tabular-nums;}
+  .receipt-thumb{width:52px; height:52px; object-fit:cover; border-radius:8px; border:1px solid var(--line); flex:none;}
+  .ocr-readout{font-family:var(--font-mono); font-size:.8rem; color:var(--ink-muted); background:var(--surface-2); border-radius:10px; padding:.65rem .75rem; font-variant-numeric:tabular-nums;}
   .recognized-line{font-size:.85rem;}
-  .recognized-line .over{color:var(--seal); font-weight:600;}
+  .recognized-line .over{color:var(--danger); font-weight:600;}
   .recognized-line .fit{color:var(--ok); font-weight:600;}
   #receiptsList{display:flex; flex-direction:column; gap:1rem;}
 
-  .summary{position:sticky; top:1.3rem; background:var(--surface); border:1px solid var(--line-strong); padding:1.5rem;}
-  .summary .section-title{margin-bottom:1rem;}
-  .breakdown-row{display:flex; justify-content:space-between; font-size:.86rem; padding:.45rem 0; border-bottom:1px dashed var(--line);}
+  .summary{position:sticky; top:1.3rem; background:var(--ink); background-image:repeating-linear-gradient(180deg, transparent, transparent 11px, var(--paper) 11px, var(--paper) 13px); background-size:2px 100%; background-repeat:no-repeat; background-position:0 0; border-radius:var(--radius-card); padding:1.6rem 1.6rem 1.6rem 1.9rem; color:#fff;}
+  .summary .section-title{margin-bottom:1rem; border-bottom-color:rgba(255,255,255,.18); color:#fff;}
+  .summary .section-num{background:var(--highlight); color:var(--ink);}
+  .breakdown-row{display:flex; justify-content:space-between; font-size:.86rem; padding:.5rem 0; border-bottom:1px dashed rgba(255,255,255,.18); color:rgba(255,255,255,.85);}
   .breakdown-row .mono{font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
-  .summary .total-label{font-size:.78rem; color:var(--ink-muted); margin-top:1.1rem;}
-  .summary .total{font-family:var(--font-mono); font-size:2.05rem; color:var(--seal); font-variant-numeric:tabular-nums; margin:.2rem 0 .3rem;}
-  .summary .warn-count{font-size:.78rem; color:var(--ink-muted);}
+  .summary .total-label{font-size:.78rem; color:rgba(255,255,255,.6); margin-top:1.2rem;}
+  .summary .total{font-family:var(--font-hero); font-size:2.3rem; color:var(--highlight); font-variant-numeric:tabular-nums; margin:.25rem 0 .4rem;}
+  .summary .warn-count{font-size:.78rem; color:rgba(255,255,255,.6);}
 
   .skip-note{color:var(--ink-muted); font-size:.85rem; font-style:italic;}
 
@@ -129,32 +155,71 @@
   details.card summary .section-num{margin-right:.1rem;}
 
   .status-pill{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:.4rem; flex:none;}
-  .status-pill.law{background:var(--accent);}
+  .status-pill.law{background:var(--secondary);}
   .status-pill.org{background:var(--ok);}
   .status-pill.undetermined{background:var(--warn);}
   .status-cell{display:flex; align-items:center;}
-  .status-select{font-family:var(--font-body); font-size:.78rem; padding:.3rem .4rem; border:1px solid var(--line); background:var(--surface); color:var(--ink);}
-  table.ledger input[type="text"], table.ledger select{font-family:var(--font-body); font-size:.82rem; padding:.35rem .45rem; border:1px solid var(--line); background:var(--surface); color:var(--ink); width:100%; min-width:100px;}
+  .status-select{font-family:var(--font-body); font-size:.78rem; padding:.3rem .4rem; border-radius:6px; border:1px solid var(--line); background:var(--paper); color:var(--ink);}
+  table.ledger input[type="text"], table.ledger select{font-family:var(--font-body); font-size:.82rem; padding:.35rem .45rem; border-radius:6px; border:1px solid var(--line); background:var(--paper); color:var(--ink); width:100%; min-width:100px;}
   .grade-cell{display:flex; flex-direction:column; gap:.15rem;}
   .grade-cell input{width:70px !important; min-width:70px !important;}
 </style>
 
+<svg style="position:absolute; width:0; height:0; overflow:hidden;" aria-hidden="true">
+  <symbol id="icon-depart" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 15l6-6M9 9h6v6"/></symbol>
+  <symbol id="icon-arrive" viewBox="0 0 24 24"><path d="M6 3v18"/><path d="M6 4h11l-3 4 3 4H6"/></symbol>
+  <symbol id="icon-car" viewBox="0 0 24 24"><path d="M4 16V11l2-5h12l2 5v5"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/><path d="M4 16h16"/></symbol>
+  <symbol id="icon-train" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="12" rx="3"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="8" y1="19" x2="6" y2="22"/><line x1="16" y1="19" x2="18" y2="22"/></symbol>
+  <symbol id="icon-plane" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></symbol>
+  <symbol id="icon-hotel" viewBox="0 0 24 24"><path d="M3 19v-6a2 2 0 012-2h14a2 2 0 012 2v6"/><path d="M3 19h18"/><path d="M5 11V7a2 2 0 012-2h3v6"/></symbol>
+  <symbol id="icon-meal" viewBox="0 0 24 24"><path d="M4 12h16a8 8 0 01-16 0z"/><path d="M12 12V6"/></symbol>
+  <symbol id="icon-receipt" viewBox="0 0 24 24"><path d="M6 2h12v20l-2-1.5L14 22l-2-1.5L10 22l-2-1.5L6 22z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="13" y2="15"/></symbol>
+  <symbol id="icon-map" viewBox="0 0 24 24"><path d="M9 3L3 5v16l6-2 6 2 6-2V3l-6 2-6-2z"/><line x1="9" y1="3" x2="9" y2="19"/><line x1="15" y1="5" x2="15" y2="21"/></symbol>
+  <symbol id="icon-route" viewBox="0 0 24 24"><path d="M4 20c4-8 8-2 10-8s2-8 6-8" stroke-dasharray="2 3"/><circle cx="4" cy="20" r="1.5" fill="currentColor" stroke="none"/><circle cx="20" cy="4" r="1.5" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="icon-check" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></symbol>
+  <symbol id="icon-warning" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><line x1="12" y1="9" x2="12" y2="14"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="icon-pin" viewBox="0 0 24 24"><path d="M12 22s7-7.5 7-13a7 7 0 10-14 0c0 5.5 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></symbol>
+</svg>
+
 <div class="wrap">
   <div class="masthead">
-    <span class="badge-proto">PROTOTYPE · 업무흐름 검증용</span>
+    <span class="badge-proto"><svg class="icon"><use href="#icon-route"></use></svg> PROTOTYPE · 업무흐름 검증용</span>
     <h1>여비 정산대장</h1>
-    <p>출장신청서를 입력하면 「여비업무 처리기준」에 따라 관내·관외 여비가 자동으로 계산되고, 제출된 영수증은 인식 결과를 사람이 확인·수정한 뒤 규정상 인정금액과 비교해 초과·누락·중복을 검증합니다.</p>
+    <p>출장신청서를 입력하면 「여비업무 처리기준」에 따라 관내·관외·국외 여비가 자동으로 계산되고, 제출된 영수증은 인식 결과를 사람이 확인·수정한 뒤 규정상 인정금액과 비교해 초과·누락·중복을 검증합니다.</p>
   </div>
 
-  <div class="flow-strip">
-    <span class="step">1. 출장신청서 입력</span><span class="sep">→</span>
-    <span class="step">유형 판단(관내/관외)</span><span class="sep">→</span>
-    <span class="step">이동수단·시간·거리 계산</span><span class="sep">→</span>
-    <span class="step">항목별 지급기준 적용</span><span class="sep">→</span>
-    <span class="step">영수증 OCR·증빙 확인</span><span class="sep">→</span>
-    <span class="step">인정금액 계산</span><span class="sep">→</span>
-    <span class="step">누락·초과·중복 검증</span><span class="sep">→</span>
-    <span class="step">5. 최종 지급액</span>
+  <div class="stat-tiles">
+    <div class="stat-tile" style="--tile-color:var(--primary);">
+      <svg class="icon stat-icon" style="width:1.5rem; height:1.5rem;"><use href="#icon-pin"></use></svg>
+      <div class="stat-value" id="statTotal">0원</div>
+      <div class="stat-label">지급 예정액</div>
+    </div>
+    <div class="stat-tile" style="--tile-color:var(--warn);">
+      <svg class="icon stat-icon" style="width:1.5rem; height:1.5rem;"><use href="#icon-warning"></use></svg>
+      <div class="stat-value" id="statWarnings">0건</div>
+      <div class="stat-label">검증 경고 · 오류</div>
+    </div>
+    <div class="stat-tile" style="--tile-color:var(--secondary);">
+      <svg class="icon stat-icon" style="width:1.5rem; height:1.5rem;"><use href="#icon-route"></use></svg>
+      <div class="stat-value" id="statTripType" style="font-family:var(--font-body); font-weight:700; font-size:1.15rem;">관내출장</div>
+      <div class="stat-label">출장 구분</div>
+    </div>
+    <div class="stat-tile" style="--tile-color:var(--highlight);">
+      <svg class="icon stat-icon" style="width:1.5rem; height:1.5rem;"><use href="#icon-map"></use></svg>
+      <div class="stat-value" id="statDays">-</div>
+      <div class="stat-label">출장 일수</div>
+    </div>
+  </div>
+
+  <div class="route-strip">
+    <div class="route-node"><div class="route-pin"><svg class="icon"><use href="#icon-depart"></use></svg></div><div class="route-label">출장신청서 입력</div></div>
+    <div class="route-node"><div class="route-pin"><svg class="icon"><use href="#icon-route"></use></svg></div><div class="route-label">유형 판단</div></div>
+    <div class="route-node"><div class="route-pin"><svg class="icon"><use href="#icon-car"></use></svg></div><div class="route-label">이동·시간·거리</div></div>
+    <div class="route-node"><div class="route-pin"><svg class="icon"><use href="#icon-hotel"></use></svg></div><div class="route-label">지급기준 적용</div></div>
+    <div class="route-node"><div class="route-pin"><svg class="icon"><use href="#icon-receipt"></use></svg></div><div class="route-label">영수증 OCR</div></div>
+    <div class="route-node"><div class="route-pin"><svg class="icon"><use href="#icon-check"></use></svg></div><div class="route-label">인정금액 계산</div></div>
+    <div class="route-node"><div class="route-pin"><svg class="icon"><use href="#icon-warning"></use></svg></div><div class="route-label">검증</div></div>
+    <div class="route-node"><div class="route-pin"><svg class="icon"><use href="#icon-arrive"></use></svg></div><div class="route-label">최종 지급액</div></div>
   </div>
 
   <div class="grid">
@@ -162,7 +227,7 @@
 
       <!-- 1. 출장신청서 입력 -->
       <section class="card">
-        <div class="section-title"><span class="section-num">1</span>출장신청서 입력</div>
+        <div class="section-title"><span class="section-num">1</span><svg class="icon" style="color:var(--primary);"><use href="#icon-depart"></use></svg>출장신청서 입력</div>
         <div class="field-grid">
           <div class="field">
             <label class="field-label" for="applicant">출장자명</label>
@@ -193,7 +258,7 @@
 
       <!-- 2. 관내출장 -->
       <section class="card" id="localSection">
-        <div class="section-title"><span class="section-num">2</span>관내출장 산정<span class="section-sub">이동수단 · 시간 · 거리</span></div>
+        <div class="section-title"><span class="section-num">2</span><svg class="icon" style="color:var(--primary);"><use href="#icon-car"></use></svg>관내출장 산정<span class="section-sub">이동수단 · 시간 · 거리</span></div>
         <p class="note">※ 왕복 2km 이상 + 관용차량 미이용 + 지정 구간(문화회관·음악창작소·문화동어울림센터 간 이동) 아님 + 재단 내부행사 아님 — 4가지를 모두 충족해야 지급 대상입니다. 점심시간(12:00~13:00)이 출장시간에 포함되어도 별도로 차감하지 않고 경과시간 그대로 반영합니다. 하루 2회 이상 출장 시 같은 날짜의 인정 건들을 합산해 지급액을 판정합니다.</p>
         <div class="table-scroll">
           <table class="ledger">
@@ -216,7 +281,7 @@
 
       <!-- 2. 관외출장 -->
       <section class="card" id="distantSection" hidden>
-        <div class="section-title"><span class="section-num">2</span>관외출장 산정<span class="section-sub">일비 · 식비 · 숙박비 · 운임</span></div>
+        <div class="section-title"><span class="section-num">2</span><svg class="icon" style="color:var(--primary);"><use href="#icon-train"></use></svg>관외출장 산정<span class="section-sub">일비 · 식비 · 숙박비 · 운임</span></div>
         <div class="field-grid">
           <div class="field">
             <label class="field-label" for="distant-depart">출발일시</label>
@@ -286,7 +351,7 @@
 
       <!-- 2. 국외출장 -->
       <section class="card" id="overseasSection" hidden>
-        <div class="section-title"><span class="section-num">2</span>국외출장 산정<span class="section-sub">「공무원 여비 규정」 참고값 + 재단 관리자 설정</span></div>
+        <div class="section-title"><span class="section-num">2</span><svg class="icon" style="color:var(--primary);"><use href="#icon-plane"></use></svg>국외출장 산정<span class="section-sub">「공무원 여비 규정」 참고값 + 재단 관리자 설정</span></div>
         <p class="note">※ 아래 일비·숙박비상한·식비·항공등급은 「공무원 여비 규정」 별표3·별표4의 값을 <strong>참고용 초기값</strong>으로 불러온 것이며 재단의 확정 규정이 아닙니다. <span id="ov-mealPolicyBadge"></span> 등 미확정 항목은 하단 관리자 설정에서 채워야 실제 계산에 반영됩니다.</p>
 
         <div class="field-grid">
@@ -389,7 +454,7 @@
 
       <!-- 3. 영수증 -->
       <section class="card" id="receiptsSection" hidden>
-        <div class="section-title"><span class="section-num">3</span>영수증 업로드 및 OCR 확인</div>
+        <div class="section-title"><span class="section-num">3</span><svg class="icon" style="color:var(--primary);"><use href="#icon-receipt"></use></svg>영수증 업로드 및 OCR 확인</div>
         <p class="note">※ 숙박비·운임은 영수증 실비 정산 항목이라 여기서 증빙을 등록합니다. 식비·일비는 규정에 따른 정액 계산이라 영수증이 필요 없습니다. 국외출장에서는 통화를 지정해 원화 환산 후 규정상 인정금액과 비교합니다. OCR은 프로토타입 시뮬레이션이며, 실제 엔진 연동 시에도 이 화면 구조(인식값→사람 확인→확정값)는 그대로 유지됩니다.</p>
         <div id="receiptsList"></div>
         <div class="row-actions"><button id="addReceiptBtn">+ 영수증 추가</button></div>
@@ -398,13 +463,13 @@
 
       <!-- 4. 검증 -->
       <section class="card">
-        <div class="section-title"><span class="section-num">4</span>검증 결과</div>
+        <div class="section-title"><span class="section-num">4</span><svg class="icon" style="color:var(--primary);"><use href="#icon-check"></use></svg>검증 결과</div>
         <div class="chip-list" id="warningsList"></div>
       </section>
 
       <!-- 관리자 설정 -->
       <details class="card" id="adminPanel">
-        <summary class="section-title" style="cursor:pointer; margin-bottom:0;"><span class="section-num">A</span>관리자 설정 — 국외여비 기준 관리</summary>
+        <summary class="section-title" style="cursor:pointer; margin-bottom:0;"><span class="section-num">A</span><svg class="icon" style="color:var(--primary);"><use href="#icon-map"></use></svg>관리자 설정 — 국외여비 기준 관리</summary>
         <div style="margin-top:1.3rem; display:flex; flex-direction:column; gap:1.8rem;">
 
           <div>
@@ -455,7 +520,7 @@
 
     <!-- 5. 최종 지급액 -->
     <aside class="summary">
-      <div class="section-title"><span class="section-num">5</span>최종 지급액</div>
+      <div class="section-title"><span class="section-num">5</span><svg class="icon" style="color:var(--highlight);"><use href="#icon-pin"></use></svg>최종 지급액</div>
       <div id="summaryBreakdown"></div>
       <div class="total-label">지급 예정액</div>
       <div class="total" id="summaryTotal">0원</div>
@@ -1244,6 +1309,18 @@
     const dangerCount = warnings.filter(w=>w.level==='danger').length;
     const warnCount = warnings.filter(w=>w.level==='warn').length;
     document.getElementById('summaryWarnCount').textContent = `${dangerCount}건 오류 · ${warnCount}건 주의`;
+    renderDashboardStats(result, total, dangerCount, warnCount);
+  }
+
+  const TRIP_TYPE_LABEL = {local:'관내출장', distant:'관외출장', overseas:'국외출장'};
+  function renderDashboardStats(result, total, dangerCount, warnCount){
+    document.getElementById('statTotal').textContent = won(total);
+    document.getElementById('statWarnings').textContent = `${dangerCount+warnCount}건 (오류 ${dangerCount})`;
+    document.getElementById('statTripType').textContent = TRIP_TYPE_LABEL[state.tripType] || '-';
+    let days = '-';
+    if(state.tripType === 'local' && result.dayResults) days = result.dayResults.length ? result.dayResults.length + '일' : '-';
+    else if((state.tripType === 'distant' || state.tripType === 'overseas') && result.dates) days = result.dates.length ? result.dates.length + '일' : '-';
+    document.getElementById('statDays').textContent = days;
   }
 
   function recompute(){
